@@ -2,196 +2,272 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>学歴バトルRPG</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON FACE SCAN</title>
+
 <style>
+:root{
+  --accent:#39ff14;
+  --bg:#0a0f0a;
+  --panel:#111a11;
+}
+
 body{
   margin:0;
-  font-family:"Noto Sans JP",sans-serif;
-  background:#0f172a;
+  background:var(--bg);
   color:white;
+  font-family:sans-serif;
   text-align:center;
+  overflow:hidden;
 }
 
-h1{margin-top:30px;}
-
-.container{margin-top:30px;}
-
-select,button{
-  padding:10px 20px;
-  margin:10px;
-  font-size:16px;
-  border:none;
-  border-radius:8px;
+/* ローディング */
+.loader{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:999;
 }
 
+.loader-circle{
+  width:80px;
+  height:80px;
+  border:4px solid rgba(57,255,20,0.2);
+  border-top:4px solid var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  box-shadow:0 0 20px var(--accent);
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+/* メイン */
+.container{
+  opacity:0;
+  transition:1s;
+  padding:30px;
+}
+
+.container.active{
+  opacity:1;
+}
+
+h1{
+  color:var(--accent);
+  text-shadow:0 0 15px var(--accent);
+}
+
+/* ビデオ枠 */
+.video-wrapper{
+  position:relative;
+  display:inline-block;
+  margin-top:20px;
+  border:2px solid var(--accent);
+  border-radius:20px;
+  box-shadow:0 0 25px rgba(57,255,20,0.5);
+}
+
+video{
+  width:320px;
+  max-width:90%;
+  border-radius:20px;
+}
+
+/* ===== HUDターゲット ===== */
+.hud{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  pointer-events:none;
+}
+
+.target{
+  width:150px;
+  height:150px;
+  border:2px solid var(--accent);
+  border-radius:50%;
+  box-shadow:0 0 20px var(--accent);
+  position:relative;
+  animation:pulse 2s infinite;
+}
+
+.target::before,
+.target::after{
+  content:"";
+  position:absolute;
+  background:var(--accent);
+}
+
+.target::before{
+  width:2px;
+  height:100%;
+  left:50%;
+  transform:translateX(-50%);
+}
+
+.target::after{
+  height:2px;
+  width:100%;
+  top:50%;
+  transform:translateY(-50%);
+}
+
+@keyframes pulse{
+  0%,100%{ opacity:0.5; }
+  50%{ opacity:1; }
+}
+
+/* ボタン */
 button{
-  background:#3b82f6;
-  color:white;
+  margin-top:25px;
+  padding:12px 40px;
+  font-size:18px;
+  background:transparent;
+  border:2px solid var(--accent);
+  color:var(--accent);
+  border-radius:50px;
   cursor:pointer;
-  transition:0.2s;
+  transition:0.3s;
 }
 
 button:hover{
-  background:#2563eb;
-  transform:scale(1.05);
+  background:var(--accent);
+  color:black;
+  box-shadow:0 0 20px var(--accent);
 }
 
-#gameArea{
-  margin-top:40px;
-  display:none;
-}
-
-.card{
-  margin:20px auto;
-  padding:20px;
-  width:320px;
-  background:#1e293b;
-  border-radius:16px;
-  box-shadow:0 0 20px rgba(59,130,246,0.3);
-  transition:0.2s;
-}
-
-.hpbar{
-  height:15px;
-  background:red;
-  border-radius:8px;
-  margin-top:10px;
-}
-
-#log{
+/* ゲージ */
+.gauge{
   margin-top:20px;
-  min-height:40px;
+  width:300px;
+  max-width:90%;
+  height:20px;
+  border:1px solid var(--accent);
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.gauge-bar{
+  height:100%;
+  width:0%;
+  background:var(--accent);
+  box-shadow:0 0 15px var(--accent);
+  transition:0.5s;
+}
+
+#powerText{
+  margin-top:10px;
+  color:var(--accent);
   font-weight:bold;
 }
 
-.enemyFlash{
-  animation:flash 0.2s;
-}
-
-@keyframes flash{
-  0%{background:#1e293b;}
-  50%{background:#7f1d1d;}
-  100%{background:#1e293b;}
+canvas{
+  display:none;
 }
 </style>
 </head>
+
 <body>
 
-<h1>🎓 学歴バトルRPG</h1>
-
-<div class="container">
-  <p>志望ランクを選べ</p>
-  <select id="rankSelect">
-    <option value="S">Sランク（超難関）</option>
-    <option value="A">Aランク（難関）</option>
-    <option value="B">Bランク（中堅）</option>
-    <option value="C">Cランク（挑戦者）</option>
-  </select>
-  <br>
-  <button onclick="startGame()">入学する</button>
+<div class="loader" id="loader">
+  <div class="loader-circle"></div>
+  <div style="color:#39ff14;margin-top:15px;">SYSTEM BOOTING...</div>
 </div>
 
-<div id="gameArea">
-  <div class="card">
-    <h2 id="playerTitle"></h2>
-    <p>HP: <span id="playerHP"></span></p>
-    <p>攻撃力: <span id="playerATK"></span></p>
+<div class="container" id="main">
+  <h1>FACE TARGET LOCK</h1>
+
+  <div class="video-wrapper">
+    <video id="video" autoplay playsinline></video>
+
+    <div class="hud">
+      <div class="target"></div>
+    </div>
   </div>
 
-  <div class="card" id="enemyCard">
-    <h2 id="enemyName"></h2>
-    <div class="hpbar" id="enemyHPBar"></div>
+  <canvas id="canvas"></canvas>
+
+  <br>
+  <button id="attackBtn">ATTACK</button>
+
+  <div class="gauge">
+    <div class="gauge-bar" id="gaugeBar"></div>
   </div>
-
-  <button onclick="attack()">論破する</button>
-
-  <div id="log"></div>
+  <div id="powerText">ATTACK POWER: 0</div>
 </div>
 
 <script>
-let player = {};
-let enemy = {};
+const loader = document.getElementById("loader");
+const main = document.getElementById("main");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const attackBtn = document.getElementById("attackBtn");
+const gaugeBar = document.getElementById("gaugeBar");
+const powerText = document.getElementById("powerText");
 
-const enemies = [
-  {name:"Sランク校連合", hp:200, atk:30, type:"normal"},
-  {name:"Gランク同盟", hp:150, atk:20, type:"normal"},
-  {name:"浪人", hp:260, atk:40, type:"boss"},
-  {name:"ホンダ（惑乱）", hp:180, atk:25, type:"confuse"}
-];
-
-function startGame(){
-  const rank = document.getElementById("rankSelect").value;
-  
-  if(rank==="S"){
-    player = {title:"Sランク覇者", hp:500, atk:80};
-  }else if(rank==="A"){
-    player = {title:"Aランク戦士", hp:350, atk:55};
-  }else if(rank==="B"){
-    player = {title:"Bランク努力家", hp:250, atk:35};
-  }else{
-    player = {title:"Cランク挑戦者", hp:180, atk:25};
-  }
-
-  document.getElementById("playerTitle").innerText = player.title;
-  document.getElementById("playerHP").innerText = player.hp;
-  document.getElementById("playerATK").innerText = player.atk;
-
-  document.querySelector(".container").style.display="none";
-  document.getElementById("gameArea").style.display="block";
-
-  spawnEnemy();
-}
-
-function spawnEnemy(){
-  const random = enemies[Math.floor(Math.random()*enemies.length)];
-  enemy = {...random};
-  document.getElementById("enemyName").innerText = enemy.name;
-  updateEnemyHP();
-  document.getElementById("log").innerText = enemy.name+" が現れた！";
-}
-
-function updateEnemyHP(){
-  const percent = (enemy.hp/260)*100;
-  document.getElementById("enemyHPBar").style.width = percent+"%";
-}
-
-function attack(){
-
-  // ホンダの惑乱効果（30%で攻撃失敗）
-  if(enemy.type==="confuse"){
-    if(Math.random()<0.3){
-      document.getElementById("log").innerText="ホンダに惑わされた！攻撃ミス！";
-      player.hp -= enemy.atk;
-      document.getElementById("playerHP").innerText = player.hp;
-      return;
-    }
-  }
-
-  enemy.hp -= player.atk;
-
-  document.getElementById("enemyCard").classList.add("enemyFlash");
+// ローディング演出
+window.addEventListener("load",()=>{
   setTimeout(()=>{
-    document.getElementById("enemyCard").classList.remove("enemyFlash");
-  },200);
+    loader.style.display="none";
+    main.classList.add("active");
+  },1500);
+});
 
-  if(enemy.hp<=0){
-    document.getElementById("log").innerText = enemy.name+" を撃破！";
-    setTimeout(spawnEnemy,1000);
-    return;
-  }
-
-  player.hp -= enemy.atk;
-  document.getElementById("playerHP").innerText = player.hp;
-  updateEnemyHP();
-
-  document.getElementById("log").innerText =
-    enemy.name+" の反撃！ "+enemy.atk+" ダメージ！";
-
-  if(player.hp<=0){
-    document.getElementById("log").innerText="留年エンド...";
-    document.querySelector("button").disabled=true;
+// カメラ起動
+async function startCamera(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:"user" },
+      audio:false
+    });
+    video.srcObject = stream;
+  }catch{
+    alert("カメラ許可が必要です");
   }
 }
+startCamera();
+
+// 攻撃処理
+attackBtn.addEventListener("click",()=>{
+
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const data = imageData.data;
+
+  let totalBrightness = 0;
+  let pixelCount = data.length / 4;
+
+  for(let i=0;i<data.length;i+=4){
+    const r = data[i];
+    const g = data[i+1];
+    const b = data[i+2];
+
+    // 明度計算（標準輝度式）
+    const brightness = 0.299*r + 0.587*g + 0.114*b;
+    totalBrightness += brightness;
+  }
+
+  const avgBrightness = totalBrightness / pixelCount;
+
+  // 0〜255 → 攻撃力0〜100換算
+  const attackPower = Math.min(100, Math.floor((avgBrightness / 255) * 100));
+
+  gaugeBar.style.width = attackPower + "%";
+  powerText.textContent = "ATTACK POWER: " + attackPower;
+});
 </script>
 
 </body>
