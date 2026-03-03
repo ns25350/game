@@ -1,28 +1,137 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEON CAMERA - DB SAVE</title>
-    <style>
-        :root{ --accent:#39ff14; --bg:#0a0f0a; }
-        body{ margin:0; background:var(--bg); color:white; font-family:sans-serif; text-align:center; overflow-x:hidden; }
-        h1{ color:var(--accent); text-shadow:0 0 15px var(--accent); margin-top:20px; letter-spacing:2px; }
-        .video-wrapper{ position:relative; display:inline-block; margin:20px; border:2px solid var(--accent); border-radius:20px; overflow:hidden; box-shadow:0 0 20px rgba(57,255,20,0.4); background:#000; }
-        video{ width:320px; max-width:90vw; display:block; }
-        .btn{ margin-top:10px; padding:15px 50px; font-size:20px; background:transparent; border:2px solid var(--accent); color:var(--accent); border-radius:50px; cursor:pointer; transition:0.3s; font-weight:bold; }
-        .btn:hover{ background:var(--accent); color:black; box-shadow:0 0 20px var(--accent); }
-        .btn:disabled{ opacity:0.5; cursor:not-allowed; }
-        canvas{ display:none; }
-        #status{ margin-top:15px; color:var(--accent); font-weight:bold; min-height:1.5em; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEON CAMERA - DB SAVE</title>
+
+<style>
+:root{ --accent:#39ff14; --bg:#0a0f0a; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+  overflow-x:hidden;
+}
+
+/* ===== ローディング ===== */
+.loader{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
+  transition:opacity 0.5s ease;
+}
+
+.loader.fade-out{
+  opacity:0;
+  pointer-events:none;
+}
+
+.loader-circle{
+  width:80px;
+  height:80px;
+  border:4px solid rgba(57,255,20,0.2);
+  border-top:4px solid var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  box-shadow:0 0 20px var(--accent);
+}
+
+.loader-text{
+  margin-top:20px;
+  color:var(--accent);
+  letter-spacing:3px;
+  animation:pulse 1.5s infinite;
+}
+
+@keyframes spin{
+  to{ transform:rotate(360deg); }
+}
+
+@keyframes pulse{
+  0%,100%{ opacity:0.3; }
+  50%{ opacity:1; }
+}
+
+/* ===== メインUI ===== */
+h1{
+  color:var(--accent);
+  text-shadow:0 0 15px var(--accent);
+  margin-top:20px;
+  letter-spacing:2px;
+}
+
+.video-wrapper{
+  position:relative;
+  display:inline-block;
+  margin:20px;
+  border:2px solid var(--accent);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 0 20px rgba(57,255,20,0.4);
+  background:#000;
+}
+
+video{
+  width:320px;
+  max-width:90vw;
+  display:block;
+}
+
+.btn{
+  margin-top:10px;
+  padding:15px 50px;
+  font-size:20px;
+  background:transparent;
+  border:2px solid var(--accent);
+  color:var(--accent);
+  border-radius:50px;
+  cursor:pointer;
+  transition:0.3s;
+  font-weight:bold;
+}
+
+.btn:hover{
+  background:var(--accent);
+  color:black;
+  box-shadow:0 0 20px var(--accent);
+}
+
+.btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+canvas{ display:none; }
+
+#status{
+  margin-top:15px;
+  color:var(--accent);
+  font-weight:bold;
+  min-height:1.5em;
+}
+</style>
 </head>
 <body>
+
+<!-- ===== ローディング画面 ===== -->
+<div class="loader" id="loader">
+  <div class="loader-circle"></div>
+  <div class="loader-text">INITIALIZING CAMERA...</div>
+</div>
 
 <h1>NEON CAMERA</h1>
 
 <div class="video-wrapper">
-    <video id="video" autoplay playsinline></video>
+  <video id="video" autoplay playsinline></video>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -31,74 +140,78 @@
 <div id="status"></div>
 
 <script type="module">
-  // Firebase SDKの読み込み
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  // あなたの設定（databaseURLを追加済み）
-  const firebaseConfig = {
-    apiKey: "AIzaSyB4OchbsfGGC_VozMPeBGbr2ZtiMJTWTJg",
-    authDomain: "johou7-275be.firebaseapp.com",
-    databaseURL: "https://johou7-275be-default-rtdb.firebaseio.com",
-    projectId: "johou7-275be",
-    storageBucket: "johou7-275be.firebasestorage.app",
-    messagingSenderId: "840280999329",
-    appId: "1:840280999329:web:d7cefde6ec9953cabb77e0"
-  };
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "johou7-275be.firebaseapp.com",
+  databaseURL: "https://johou7-275be-default-rtdb.firebaseio.com",
+  projectId: "johou7-275be",
+  storageBucket: "johou7-275be.firebasestorage.app",
+  messagingSenderId: "840280999329",
+  appId: "1:840280999329:web:d7cefde6ec9953cabb77e0"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
-  const shootBtn = document.getElementById("shootBtn");
-  const status = document.getElementById("status");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const shootBtn = document.getElementById("shootBtn");
+const status = document.getElementById("status");
+const loader = document.getElementById("loader");
 
-  // カメラ起動
-  async function startCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "user" },
-          audio: false 
-      });
-      video.srcObject = stream;
-    } catch (err) {
-      alert("カメラを許可してください！");
-      console.error(err);
-    }
+// ===== カメラ起動 =====
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
+    video.srcObject = stream;
+
+    // カメラ準備完了 → ローディング消す
+    setTimeout(()=>{
+      loader.classList.add("fade-out");
+      setTimeout(()=> loader.style.display="none", 500);
+    }, 800);
+
+  } catch (err) {
+    alert("カメラを許可してください！");
+    console.error(err);
   }
-  startCamera();
+}
+startCamera();
 
-  // 撮影と保存
-  shootBtn.addEventListener("click", async () => {
-    shootBtn.disabled = true;
-    status.innerText = "転送中...";
+// ===== 撮影と保存 =====
+shootBtn.addEventListener("click", async () => {
+  shootBtn.disabled = true;
+  status.innerText = "転送中...";
 
-    const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0);
 
-    // 容量を抑えるためにwebp形式・画質0.5で変換
-    const imageData = canvas.toDataURL("image/webp", 0.5);
+  const imageData = canvas.toDataURL("image/webp", 0.5);
 
-    try {
-      // Databaseの 'photos' フォルダへ保存
-      await push(ref(db, 'photos'), {
-        image: imageData,
-        timestamp: Date.now()
-      });
-      status.innerText = "成功！Databaseを確認せよ";
-    } catch (error) {
-      console.error(error);
-      status.innerText = "エラー！ルールを確認してください";
-    } finally {
-      setTimeout(() => {
-        shootBtn.disabled = false;
-        status.innerText = "";
-      }, 2000);
-    }
-  });
+  try {
+    await push(ref(db, 'photos'), {
+      image: imageData,
+      timestamp: Date.now()
+    });
+    status.innerText = "成功！Databaseを確認せよ";
+  } catch (error) {
+    console.error(error);
+    status.innerText = "エラー！ルールを確認してください";
+  } finally {
+    setTimeout(() => {
+      shootBtn.disabled = false;
+      status.innerText = "";
+    }, 2000);
+  }
+});
 </script>
 
 </body>
