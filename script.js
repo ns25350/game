@@ -98,65 +98,70 @@ async function predictWebcam() {
 
 // --- 攻撃ロジック ---
 shootBtn.addEventListener("click", async () => {
-    // 1. データの存在確認（最も重要なチェック）
     if (!lastResult || !lastResult.landmarks || lastResult.landmarks.length === 0) {
         status.innerText = "WARNING: ターゲットをロスト！";
         return;
     }
 
     shootBtn.disabled = true;
-    const pts = lastResult.landmarks[0]; // 0番目の人物データ
-    let damage = 0;
+    const pts = lastResult.landmarks[0]; 
+    
+    // --- スコア計算用変数をリセット ---
+    let currentDamage = 0;
     let hitList = [];
 
-    // --- 判定ロジックを「確実性重視」に ---
-    // MediaPipe Pose Indices: 0=Nose, 11/12=Shoulders, 13/14=Elbows, 15/16=Wrists, 23/24=Hips
-    
-    // 【HEAD】鼻
-    if (pts[0] && (pts[0].visibility > 0.1 || pts[0].z < 1)) {
-        damage += 150;
+    // 1. 【HEAD】 (Index 0: Nose) -> 150
+    if (pts[0] && pts[0].visibility > 0.2) {
+        currentDamage += 150;
         hitList.push("HEAD");
     }
 
-    // 【BODY】肩のどちらか
-    if ((pts[11] && pts[11].visibility > 0.1) || (pts[12] && pts[12].visibility > 0.1)) {
-        damage += 80;
+    // 2. 【BODY】 (Index 11 or 12: Shoulders) -> 80
+    // 両肩映っていても「BODY」として1回だけ加算
+    if ((pts[11] && pts[11].visibility > 0.2) || (pts[12] && pts[12].visibility > 0.2)) {
+        currentDamage += 80;
         hitList.push("BODY");
     }
 
-    // 【ARMS】肘・手首（どれか1つでも映れば加算、最大120）
-    const armIndices = [13, 14, 15, 16];
-    let armDmg = 0;
-    armIndices.forEach(i => {
-        if (pts[i] && pts[i].visibility > 0.1) armDmg += 30;
-    });
-    if (armDmg > 0) {
-        damage += Math.min(armDmg, 120);
-        hitList.push("ARMS");
+    // 3. 【ARMS】 (Index 13,14,15,16) -> 1本につき30
+    let armCount = 0;
+    if (pts[13] && pts[13].visibility > 0.2) armCount++; // Left Elbow
+    if (pts[14] && pts[14].visibility > 0.2) armCount++; // Right Elbow
+    if (pts[15] && pts[15].visibility > 0.2) armCount++; // Left Wrist
+    if (pts[16] && pts[16].visibility > 0.2) armCount++; // Right Wrist
+    
+    if (armCount > 0) {
+        currentDamage += (armCount * 30);
+        hitList.push(`ARMS(x${armCount})`);
     }
 
-    // 【LEGS】膝
-    if ((pts[25] && pts[25].visibility > 0.1) || (pts[26] && pts[26].visibility > 0.1)) {
-        damage += 40;
-        hitList.push("LEGS");
+    // 4. 【LEGS】 (Index 25, 26: Knees) -> 1つにつき40
+    let legCount = 0;
+    if (pts[25] && pts[25].visibility > 0.2) legCount++;
+    if (pts[26] && pts[26].visibility > 0.2) legCount++;
+
+    if (legCount > 0) {
+        currentDamage += (legCount * 40);
+        hitList.push(`LEGS(x${legCount})`);
     }
 
-    // 【救済措置】緑の線が出ているのに計算が0になった場合
-    if (damage === 0 && pts.length > 0) {
-        damage = 50; 
+    // --- 最終ダメージの適用 ---
+    // もし何も当たっていなければ最低ダメージ
+    if (currentDamage === 0) {
+        currentDamage = 10;
         hitList.push("SCRATCH");
     }
 
-    // 2. HP更新
-    enemyHP = Math.max(0, enemyHP - damage);
+    // HP更新
+    enemyHP = Math.max(0, enemyHP - currentDamage);
     hpBar.style.width = (enemyHP / 10) + "%";
     hpValue.innerText = enemyHP;
     
-    // 3. 演出
-    damageText.innerText = `-${damage} DMG!!`;
-    status.innerText = `HIT: ${hitList.join(" / ")}`;
+    // 演出
+    damageText.innerText = `-${currentDamage} DMG!!`;
+    status.innerText = `RESULT: ${hitList.join(" + ")}`;
 
-    // 4. 画像とログをFirebaseへ
+    // --- Firebase送信 & 画像保存 ---
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth;
     saveCanvas.height = video.videoHeight;
@@ -165,20 +170,17 @@ shootBtn.addEventListener("click", async () => {
     try {
         await push(ref(db, 'game_logs'), {
             image: saveCanvas.toDataURL("image/webp", 0.3),
-            totalDamage: damage,
+            totalDamage: currentDamage,
             parts: hitList,
             timestamp: Date.now()
         });
-    } catch (e) { 
-        console.error("Firebase Sync Error", e); 
-    }
+    } catch (e) { console.error(e); }
 
-    // 5. リセット処理
     setTimeout(() => {
         damageText.innerText = "";
         shootBtn.disabled = false;
         if (enemyHP <= 0) {
-            alert("MISSION COMPLETE: 敵を殲滅しました！");
+            alert("MISSION COMPLETE!!");
             enemyHP = 1000;
             hpBar.style.width = "100%";
             hpValue.innerText = enemyHP;
