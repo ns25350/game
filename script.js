@@ -98,8 +98,9 @@ async function predictWebcam() {
 
 // --- 攻撃ロジック ---
 shootBtn.addEventListener("click", async () => {
-    if (!lastResult || !lastResult.landmarks || lastResult.landmarks.length === 0) {
-        status.innerText = "WARNING: ターゲットをロスト！";
+    // 1. そもそもAIが一人でも認識しているか
+    if (!lastResult || !lastResult.landmarks || !lastResult.landmarks[0]) {
+        status.innerText = "ERROR: ターゲットが見つかりません";
         return;
     }
 
@@ -109,53 +110,56 @@ shootBtn.addEventListener("click", async () => {
     let currentDamage = 0;
     let hitList = [];
 
-    // --- 判定ロジック：visibilityを無視し、座標の存在(pts[i])だけで判定 ---
+    // --- 超・緩和判定ロジック ---
+    // visibilityの数値を見ず、座標(x, y)が定義されているかだけで判定します
     
-    // 1. 【HEAD】 (鼻: 0)
-    if (pts[0]) {
+    // HEAD (Index 0)
+    if (pts[0] && typeof pts[0].x === 'number') {
         currentDamage += 150;
         hitList.push("HEAD");
     }
 
-    // 2. 【BODY】 (肩: 11 or 12)
-    if (pts[11] || pts[12]) {
+    // BODY (Index 11 or 12)
+    if ((pts[11] && typeof pts[11].x === 'number') || (pts[12] && typeof pts[12].x === 'number')) {
         currentDamage += 80;
         hitList.push("BODY");
     }
 
-    // 3. 【ARMS】 (肘: 13,14 / 手首: 15,16)
+    // ARMS (Index 13, 14, 15, 16)
     let armCount = 0;
     [13, 14, 15, 16].forEach(i => {
-        if (pts[i]) armCount++;
+        if (pts[i] && typeof pts[i].x === 'number') armCount++;
     });
     if (armCount > 0) {
         currentDamage += (armCount * 30);
         hitList.push(`ARMS(x${armCount})`);
     }
 
-    // 4. 【LEGS】 (膝: 25, 26)
+    // LEGS (Index 25, 26)
     let legCount = 0;
-    if (pts[25]) legCount++;
-    if (pts[26]) legCount++;
+    if (pts[25] && typeof pts[25].x === 'number') legCount++;
+    if (pts[26] && typeof pts[26].x === 'number') legCount++;
     if (legCount > 0) {
         currentDamage += (legCount * 40);
         hitList.push(`LEGS(x${legCount})`);
     }
 
-    // --- 最終ダメージの適用 ---
-    // これでも0なら、データ構造自体が空
+    // --- 最終チェック ---
+    // これでも0になるなら、pts[0].x 自体が取得できていない
     if (currentDamage === 0) {
-        currentDamage = 10;
-        hitList.push("MISS");
+        // デバッグ用：ptsの長さを表示
+        status.innerText = `DEBUG: 取得点数 ${pts.length}個 / 判定失敗`;
+        currentDamage = 10; 
+    } else {
+        status.innerText = `RESULT: ${hitList.join(" + ")}`;
     }
 
-    // HP更新演出
+    // HP減少処理
     enemyHP = Math.max(0, enemyHP - currentDamage);
     hpBar.style.width = (enemyHP / 10) + "%";
     hpValue.innerText = enemyHP;
     
     damageText.innerText = `-${currentDamage} DMG!!`;
-    status.innerText = `RESULT: ${hitList.join(" + ")}`;
 
     // --- Firebase送信 ---
     const saveCanvas = document.getElementById("saveCanvas");
@@ -170,7 +174,7 @@ shootBtn.addEventListener("click", async () => {
             parts: hitList,
             timestamp: Date.now()
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Firebase Error:", e); }
 
     setTimeout(() => {
         damageText.innerText = "";
