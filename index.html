@@ -3,105 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEON CAMERA - DB SAVE</title>
-    <style>
-        :root{ --accent:#39ff14; --bg:#0a0f0a; }
-        body{ margin:0; background:var(--bg); color:white; font-family:sans-serif; text-align:center; overflow-x:hidden; }
-        h1{ color:var(--accent); text-shadow:0 0 15px var(--accent); margin-top:20px; letter-spacing:2px; }
-        .video-wrapper{ position:relative; display:inline-block; margin:20px; border:2px solid var(--accent); border-radius:20px; overflow:hidden; box-shadow:0 0 20px rgba(57,255,20,0.4); background:#000; }
-        video{ width:320px; max-width:90vw; display:block; }
-        .btn{ margin-top:10px; padding:15px 50px; font-size:20px; background:transparent; border:2px solid var(--accent); color:var(--accent); border-radius:50px; cursor:pointer; transition:0.3s; font-weight:bold; }
-        .btn:hover{ background:var(--accent); color:black; box-shadow:0 0 20px var(--accent); }
-        .btn:disabled{ opacity:0.5; cursor:not-allowed; }
-        canvas{ display:none; }
-        #status{ margin-top:15px; color:var(--accent); font-weight:bold; min-height:1.5em; }
-    </style>
+    <title>NEON SLAYER - Pose Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>NEON CAMERA</h1>
+<div id="tosModal" class="modal">
+    <div class="modal-content">
+        <h2>【重要】利用規約</h2>
+        <p>本ゲームはカメラ画像と解析データをFirebaseに送信・保存します。公序良俗に反する撮影はお控えください。</p>
+        <p>送信されたデータは開発およびランキング表示に使用されることに同意しますか？</p>
+        <button id="agreeBtn" class="btn">同意して開始</button>
+    </div>
+</div>
+
+<h1>NEON SLAYER</h1>
+
+<div class="enemy-container">
+    <div class="enemy-label">TARGET: CYBER-CORE</div>
+    <div class="hp-bar-bg">
+        <div id="hpBar" class="hp-bar-fill"></div>
+    </div>
+    <div id="damageText" class="damage-popup"></div>
+</div>
 
 <div class="video-wrapper">
     <video id="video" autoplay playsinline></video>
+    <canvas id="output_canvas"></canvas>
 </div>
 
-<canvas id="canvas"></canvas>
-<br>
-<button class="btn" id="shootBtn">狙え！</button>
-<div id="status"></div>
+<div class="controls">
+    <button class="btn" id="shootBtn" disabled>Loading...</button>
+    <div id="status"></div>
+</div>
 
-<script type="module">
-  // Firebase SDKの読み込み
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<canvas id="saveCanvas" style="display:none;"></canvas>
 
-  // あなたの設定（databaseURLを追加済み）
-  const firebaseConfig = {
-    apiKey: "AIzaSyB4OchbsfGGC_VozMPeBGbr2ZtiMJTWTJg",
-    authDomain: "johou7-275be.firebaseapp.com",
-    databaseURL: "https://johou7-275be-default-rtdb.firebaseio.com",
-    projectId: "johou7-275be",
-    storageBucket: "johou7-275be.firebasestorage.app",
-    messagingSenderId: "840280999329",
-    appId: "1:840280999329:web:d7cefde6ec9953cabb77e0"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
-  const shootBtn = document.getElementById("shootBtn");
-  const status = document.getElementById("status");
-
-  // カメラ起動
-  async function startCamera() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "user" },
-          audio: false 
-      });
-      video.srcObject = stream;
-    } catch (err) {
-      alert("カメラを許可してください！");
-      console.error(err);
-    }
-  }
-  startCamera();
-
-  // 撮影と保存
-  shootBtn.addEventListener("click", async () => {
-    shootBtn.disabled = true;
-    status.innerText = "転送中...";
-
-    const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-
-    // 容量を抑えるためにwebp形式・画質0.5で変換
-    const imageData = canvas.toDataURL("image/webp", 0.5);
-
-    try {
-      // Databaseの 'photos' フォルダへ保存
-      await push(ref(db, 'photos'), {
-        image: imageData,
-        timestamp: Date.now()
-      });
-      status.innerText = "成功！Databaseを確認せよ";
-    } catch (error) {
-      console.error(error);
-      status.innerText = "エラー！ルールを確認してください";
-    } finally {
-      setTimeout(() => {
-        shootBtn.disabled = false;
-        status.innerText = "";
-      }, 2000);
-    }
-  });
-</script>
-
+<script type="module" src="script.js"></script>
 </body>
 </html>
-
-
