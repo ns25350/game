@@ -21,7 +21,7 @@ body{
   overflow-x:hidden;
 }
 
-/* ===== ローディング ===== */
+/* ローディング画面 */
 .loader{
   position:fixed;
   inset:0;
@@ -47,7 +47,6 @@ body{
   to{ transform:rotate(360deg); }
 }
 
-/* ===== メイン ===== */
 .container{
   padding:30px;
   opacity:0;
@@ -96,8 +95,6 @@ video{
 .snipe-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  border-color: #555;
-  color: #555;
 }
 
 .snipe-btn:hover:not(:disabled){
@@ -132,45 +129,38 @@ canvas{
 
 <div class="loader" id="loader">
   <div class="loader-circle"></div>
-  <div style="color:#39ff14;margin-top:15px;">LOADING NEON SYSTEM...</div>
+  <div style="color:#39ff14;margin-top:15px;">LOADING SYSTEM...</div>
 </div>
 
 <div class="container" id="main">
   <h1>NEON CAMERA</h1>
-
   <div class="video-wrapper">
     <video id="video" autoplay playsinline></video>
   </div>
-
   <canvas id="canvas"></canvas>
-
   <br>
   <button class="snipe-btn" id="shootBtn">狙え！</button>
-
   <div id="photos"></div>
 </div>
 
 <script type="module">
-  // 必要な機能をFirebaseから読み込む
+  // Firebase SDKの読み込み（CDN版）
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getStorage, ref, uploadString } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-  // あなたのFirebase設定
+  // あなたの新しいプロジェクト設定を反映済み
   const firebaseConfig = {
-    apiKey: "AIzaSyDszgfNpmLUkTNe7w1gGRAHut9k_jmi6AQ",
-    authDomain: "test11-b73da.firebaseapp.com",
-    projectId: "test11-b73da",
-    storageBucket: "test11-b73da.firebasestorage.app",
-    messagingSenderId: "892220922906",
-    appId: "1:892220922906:web:a4314dac8dfdd811dd85a3",
-    measurementId: "G-2RQS6345FM"
+    apiKey: "AIzaSyDsW9g1L2VqKX8jflfuZYoO9VRmjSC8AeA",
+    authDomain: "testt5-e3b9a.firebaseapp.com",
+    projectId: "testt5-e3b9a",
+    storageBucket: "testt5-e3b9a.firebasestorage.app",
+    messagingSenderId: "884425078370",
+    appId: "1:884425078370:web:3b513b08f79ab27a15833b"
   };
 
-  // Firebaseの初期化
   const app = initializeApp(firebaseConfig);
   const storage = getStorage(app);
 
-  // 要素の取得
   const loader = document.getElementById("loader");
   const main = document.getElementById("main");
   const video = document.getElementById("video");
@@ -178,7 +168,7 @@ canvas{
   const shootBtn = document.getElementById("shootBtn");
   const photos = document.getElementById("photos");
 
-  // 1. ローディング表示
+  // ローディング
   window.addEventListener("load", () => {
     setTimeout(() => {
       loader.style.display = "none";
@@ -186,7 +176,7 @@ canvas{
     }, 1000);
   });
 
-  // 2. カメラの開始
+  // カメラ
   async function startCamera() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -195,48 +185,39 @@ canvas{
       });
       video.srcObject = stream;
     } catch (err) {
-      alert("カメラの起動に失敗しました。ブラウザの許可設定を確認してください。");
-      console.error(err);
+      alert("カメラの許可が必要です！");
     }
   }
   startCamera();
 
-  // 3. 撮影とFirebaseへのアップロード
+  // 撮影＆アップロード
   shootBtn.addEventListener("click", async () => {
     const ctx = canvas.getContext("2d");
-    
-    // カメラの映像サイズをキャンバスに反映
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // 画像をBase64文字列に変換
     const imageData = canvas.toDataURL("image/png");
 
     try {
-      // ボタンを無効化
       shootBtn.innerText = "転送中...";
       shootBtn.disabled = true;
 
-      // 保存するファイル名を作成 (uploads/フォルダ内)
       const fileName = `neon_${Date.now()}.png`;
       const storageRef = ref(storage, 'uploads/' + fileName);
 
-      // Firebase Storageにアップロード
+      // 保存実行
       await uploadString(storageRef, imageData, 'data_url');
       
-      // 成功したら画面に画像を追加
       const img = document.createElement("img");
       img.src = imageData;
       photos.prepend(img);
 
       shootBtn.innerText = "成功！";
     } catch (error) {
-      console.error("Upload Error:", error);
-      alert("保存に失敗しました。FirebaseのStorageルールが『public』になっているか確認してください。");
-      shootBtn.innerText = "狙え！";
+      console.error(error);
+      alert("保存に失敗。FirebaseのStorageルールを確認してください。");
     } finally {
-      // 1.5秒後にボタンを元に戻す
       setTimeout(() => {
         shootBtn.innerText = "狙え！";
         shootBtn.disabled = false;
