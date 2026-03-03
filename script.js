@@ -106,62 +106,58 @@ shootBtn.addEventListener("click", async () => {
     shootBtn.disabled = true;
     const pts = lastResult.landmarks[0]; 
     
-    // --- スコア計算用変数をリセット ---
     let currentDamage = 0;
     let hitList = [];
 
-    // 1. 【HEAD】 (Index 0: Nose) -> 150
-    if (pts[0] && pts[0].visibility > 0.2) {
+    // --- 判定ロジック：visibilityを無視し、座標の存在(pts[i])だけで判定 ---
+    
+    // 1. 【HEAD】 (鼻: 0)
+    if (pts[0]) {
         currentDamage += 150;
         hitList.push("HEAD");
     }
 
-    // 2. 【BODY】 (Index 11 or 12: Shoulders) -> 80
-    // 両肩映っていても「BODY」として1回だけ加算
-    if ((pts[11] && pts[11].visibility > 0.2) || (pts[12] && pts[12].visibility > 0.2)) {
+    // 2. 【BODY】 (肩: 11 or 12)
+    if (pts[11] || pts[12]) {
         currentDamage += 80;
         hitList.push("BODY");
     }
 
-    // 3. 【ARMS】 (Index 13,14,15,16) -> 1本につき30
+    // 3. 【ARMS】 (肘: 13,14 / 手首: 15,16)
     let armCount = 0;
-    if (pts[13] && pts[13].visibility > 0.2) armCount++; // Left Elbow
-    if (pts[14] && pts[14].visibility > 0.2) armCount++; // Right Elbow
-    if (pts[15] && pts[15].visibility > 0.2) armCount++; // Left Wrist
-    if (pts[16] && pts[16].visibility > 0.2) armCount++; // Right Wrist
-    
+    [13, 14, 15, 16].forEach(i => {
+        if (pts[i]) armCount++;
+    });
     if (armCount > 0) {
         currentDamage += (armCount * 30);
         hitList.push(`ARMS(x${armCount})`);
     }
 
-    // 4. 【LEGS】 (Index 25, 26: Knees) -> 1つにつき40
+    // 4. 【LEGS】 (膝: 25, 26)
     let legCount = 0;
-    if (pts[25] && pts[25].visibility > 0.2) legCount++;
-    if (pts[26] && pts[26].visibility > 0.2) legCount++;
-
+    if (pts[25]) legCount++;
+    if (pts[26]) legCount++;
     if (legCount > 0) {
         currentDamage += (legCount * 40);
         hitList.push(`LEGS(x${legCount})`);
     }
 
     // --- 最終ダメージの適用 ---
-    // もし何も当たっていなければ最低ダメージ
+    // これでも0なら、データ構造自体が空
     if (currentDamage === 0) {
         currentDamage = 10;
-        hitList.push("SCRATCH");
+        hitList.push("MISS");
     }
 
-    // HP更新
+    // HP更新演出
     enemyHP = Math.max(0, enemyHP - currentDamage);
     hpBar.style.width = (enemyHP / 10) + "%";
     hpValue.innerText = enemyHP;
     
-    // 演出
     damageText.innerText = `-${currentDamage} DMG!!`;
     status.innerText = `RESULT: ${hitList.join(" + ")}`;
 
-    // --- Firebase送信 & 画像保存 ---
+    // --- Firebase送信 ---
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth;
     saveCanvas.height = video.videoHeight;
@@ -180,7 +176,7 @@ shootBtn.addEventListener("click", async () => {
         damageText.innerText = "";
         shootBtn.disabled = false;
         if (enemyHP <= 0) {
-            alert("MISSION COMPLETE!!");
+            alert("ENEMY DESTROYED!!");
             enemyHP = 1000;
             hpBar.style.width = "100%";
             hpValue.innerText = enemyHP;
