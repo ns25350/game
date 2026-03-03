@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>学歴バトルRPG</title>
+<style>
+body{
+  margin:0;
+  font-family:"Noto Sans JP",sans-serif;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+}
+
+h1{margin-top:30px;}
+
+.container{margin-top:30px;}
+
+select,button{
+  padding:10px 20px;
+  margin:10px;
+  font-size:16px;
+  border:none;
+  border-radius:8px;
+}
+
+button{
+  background:#3b82f6;
+  color:white;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  background:#2563eb;
+  transform:scale(1.05);
+}
+
+#gameArea{
+  margin-top:40px;
+  display:none;
+}
+
+.card{
+  margin:20px auto;
+  padding:20px;
+  width:320px;
+  background:#1e293b;
+  border-radius:16px;
+  box-shadow:0 0 20px rgba(59,130,246,0.3);
+  transition:0.2s;
+}
+
+.hpbar{
+  height:15px;
+  background:red;
+  border-radius:8px;
+  margin-top:10px;
+}
+
+#log{
+  margin-top:20px;
+  min-height:40px;
+  font-weight:bold;
+}
+
+.enemyFlash{
+  animation:flash 0.2s;
+}
+
+@keyframes flash{
+  0%{background:#1e293b;}
+  50%{background:#7f1d1d;}
+  100%{background:#1e293b;}
+}
+</style>
+</head>
+<body>
+
+<h1>🎓 学歴バトルRPG</h1>
+
+<div class="container">
+  <p>志望ランクを選べ</p>
+  <select id="rankSelect">
+    <option value="S">Sランク（超難関）</option>
+    <option value="A">Aランク（難関）</option>
+    <option value="B">Bランク（中堅）</option>
+    <option value="C">Cランク（挑戦者）</option>
+  </select>
+  <br>
+  <button onclick="startGame()">入学する</button>
+</div>
+
+<div id="gameArea">
+  <div class="card">
+    <h2 id="playerTitle"></h2>
+    <p>HP: <span id="playerHP"></span></p>
+    <p>攻撃力: <span id="playerATK"></span></p>
+  </div>
+
+  <div class="card" id="enemyCard">
+    <h2 id="enemyName"></h2>
+    <div class="hpbar" id="enemyHPBar"></div>
+  </div>
+
+  <button onclick="attack()">論破する</button>
+
+  <div id="log"></div>
+</div>
+
+<script>
+let player = {};
+let enemy = {};
+
+const enemies = [
+  {name:"Sランク校連合", hp:200, atk:30, type:"normal"},
+  {name:"Gランク同盟", hp:150, atk:20, type:"normal"},
+  {name:"浪人", hp:260, atk:40, type:"boss"},
+  {name:"ホンダ（惑乱）", hp:180, atk:25, type:"confuse"}
+];
+
+function startGame(){
+  const rank = document.getElementById("rankSelect").value;
+  
+  if(rank==="S"){
+    player = {title:"Sランク覇者", hp:500, atk:80};
+  }else if(rank==="A"){
+    player = {title:"Aランク戦士", hp:350, atk:55};
+  }else if(rank==="B"){
+    player = {title:"Bランク努力家", hp:250, atk:35};
+  }else{
+    player = {title:"Cランク挑戦者", hp:180, atk:25};
+  }
+
+  document.getElementById("playerTitle").innerText = player.title;
+  document.getElementById("playerHP").innerText = player.hp;
+  document.getElementById("playerATK").innerText = player.atk;
+
+  document.querySelector(".container").style.display="none";
+  document.getElementById("gameArea").style.display="block";
+
+  spawnEnemy();
+}
+
+function spawnEnemy(){
+  const random = enemies[Math.floor(Math.random()*enemies.length)];
+  enemy = {...random};
+  document.getElementById("enemyName").innerText = enemy.name;
+  updateEnemyHP();
+  document.getElementById("log").innerText = enemy.name+" が現れた！";
+}
+
+function updateEnemyHP(){
+  const percent = (enemy.hp/260)*100;
+  document.getElementById("enemyHPBar").style.width = percent+"%";
+}
+
+function attack(){
+
+  // ホンダの惑乱効果（30%で攻撃失敗）
+  if(enemy.type==="confuse"){
+    if(Math.random()<0.3){
+      document.getElementById("log").innerText="ホンダに惑わされた！攻撃ミス！";
+      player.hp -= enemy.atk;
+      document.getElementById("playerHP").innerText = player.hp;
+      return;
+    }
+  }
+
+  enemy.hp -= player.atk;
+
+  document.getElementById("enemyCard").classList.add("enemyFlash");
+  setTimeout(()=>{
+    document.getElementById("enemyCard").classList.remove("enemyFlash");
+  },200);
+
+  if(enemy.hp<=0){
+    document.getElementById("log").innerText = enemy.name+" を撃破！";
+    setTimeout(spawnEnemy,1000);
+    return;
+  }
+
+  player.hp -= enemy.atk;
+  document.getElementById("playerHP").innerText = player.hp;
+  updateEnemyHP();
+
+  document.getElementById("log").innerText =
+    enemy.name+" の反撃！ "+enemy.atk+" ダメージ！";
+
+  if(player.hp<=0){
+    document.getElementById("log").innerText="留年エンド...";
+    document.querySelector("button").disabled=true;
+  }
+}
+</script>
+
+</body>
+</html>
