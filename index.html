@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>顔で攻撃だ❗️❗️❗️</title>
+<title>狙え！NEON CAMERA</title>
 
 <style>
 :root{
@@ -18,10 +18,10 @@ body{
   color:white;
   font-family:sans-serif;
   text-align:center;
-  overflow:hidden;
+  overflow-x:hidden;
 }
 
-/* ローディング */
+/* ===== ローディング ===== */
 .loader{
   position:fixed;
   inset:0;
@@ -47,11 +47,11 @@ body{
   to{ transform:rotate(360deg); }
 }
 
-/* メイン */
+/* ===== メイン ===== */
 .container{
+  padding:30px;
   opacity:0;
   transition:1s;
-  padding:30px;
 }
 
 .container.active{
@@ -61,9 +61,10 @@ body{
 h1{
   color:var(--accent);
   text-shadow:0 0 15px var(--accent);
+  letter-spacing:4px;
 }
 
-/* ビデオ枠 */
+/* カメラ枠 */
 .video-wrapper{
   position:relative;
   display:inline-block;
@@ -79,94 +80,41 @@ video{
   border-radius:20px;
 }
 
-/* ===== HUDターゲット ===== */
-.hud{
-  position:absolute;
-  inset:0;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  pointer-events:none;
-}
-
-.target{
-  width:150px;
-  height:150px;
-  border:2px solid var(--accent);
-  border-radius:50%;
-  box-shadow:0 0 20px var(--accent);
-  position:relative;
-  animation:pulse 2s infinite;
-}
-
-.target::before,
-.target::after{
-  content:"";
-  position:absolute;
-  background:var(--accent);
-}
-
-.target::before{
-  width:2px;
-  height:100%;
-  left:50%;
-  transform:translateX(-50%);
-}
-
-.target::after{
-  height:2px;
-  width:100%;
-  top:50%;
-  transform:translateY(-50%);
-}
-
-@keyframes pulse{
-  0%,100%{ opacity:0.5; }
-  50%{ opacity:1; }
-}
-
-/* ボタン */
-button{
+/* 狙え！ボタン */
+.snipe-btn{
   margin-top:25px;
-  padding:12px 40px;
-  font-size:18px;
+  padding:15px 60px;
+  font-size:22px;
   background:transparent;
   border:2px solid var(--accent);
   color:var(--accent);
   border-radius:50px;
   cursor:pointer;
   transition:0.3s;
+  letter-spacing:4px;
 }
 
-button:hover{
+.snipe-btn:hover{
   background:var(--accent);
   color:black;
-  box-shadow:0 0 20px var(--accent);
+  box-shadow:0 0 25px var(--accent);
+  transform:scale(1.05);
 }
 
-/* ゲージ */
-.gauge{
-  margin-top:20px;
-  width:300px;
-  max-width:90%;
-  height:20px;
-  border:1px solid var(--accent);
-  margin-left:auto;
-  margin-right:auto;
+/* 撮影画像 */
+#photos{
+  margin-top:30px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:15px;
 }
 
-.gauge-bar{
-  height:100%;
-  width:0%;
-  background:var(--accent);
-  box-shadow:0 0 15px var(--accent);
-  transition:0.5s;
-}
-
-#powerText{
-  margin-top:10px;
-  color:var(--accent);
-  font-weight:bold;
+#photos img{
+  width:150px;
+  border-radius:15px;
+  border:2px solid var(--accent);
+  box-shadow:0 0 20px rgba(57,255,20,0.6);
 }
 
 canvas{
@@ -179,29 +127,22 @@ canvas{
 
 <div class="loader" id="loader">
   <div class="loader-circle"></div>
-  <div style="color:#39ff14;margin-top:15px;">SYSTEM BOOTING...</div>
+  <div style="color:#39ff14;margin-top:15px;">LOADING CAMERA...</div>
 </div>
 
 <div class="container" id="main">
-  <h1>FACE TARGET LOCK</h1>
+  <h1>NEON CAMERA</h1>
 
   <div class="video-wrapper">
     <video id="video" autoplay playsinline></video>
-
-    <div class="hud">
-      <div class="target"></div>
-    </div>
   </div>
 
   <canvas id="canvas"></canvas>
 
   <br>
-  <button id="attackBtn">ATTACK</button>
+  <button class="snipe-btn" id="shootBtn">狙え！</button>
 
-  <div class="gauge">
-    <div class="gauge-bar" id="gaugeBar"></div>
-  </div>
-  <div id="powerText">ATTACK POWER: 0</div>
+  <div id="photos"></div>
 </div>
 
 <script>
@@ -209,19 +150,18 @@ const loader = document.getElementById("loader");
 const main = document.getElementById("main");
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
-const attackBtn = document.getElementById("attackBtn");
-const gaugeBar = document.getElementById("gaugeBar");
-const powerText = document.getElementById("powerText");
+const shootBtn = document.getElementById("shootBtn");
+const photos = document.getElementById("photos");
 
 // ローディング演出
 window.addEventListener("load",()=>{
   setTimeout(()=>{
     loader.style.display="none";
     main.classList.add("active");
-  },1500);
+  },1200);
 });
 
-// カメラ起動
+// カメラ起動（フロント）
 async function startCamera(){
   try{
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -230,43 +170,26 @@ async function startCamera(){
     });
     video.srcObject = stream;
   }catch{
-    alert("カメラ許可が必要です");
+    alert("カメラの許可が必要です！");
   }
 }
 startCamera();
 
-// 攻撃処理
-attackBtn.addEventListener("click",()=>{
-
+// 撮影
+shootBtn.addEventListener("click",()=>{
   const ctx = canvas.getContext("2d");
+
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
 
-  const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
-  const data = imageData.data;
+  const imageData = canvas.toDataURL("image/png");
 
-  let totalBrightness = 0;
-  let pixelCount = data.length / 4;
+  const img = document.createElement("img");
+  img.src = imageData;
 
-  for(let i=0;i<data.length;i+=4){
-    const r = data[i];
-    const g = data[i+1];
-    const b = data[i+2];
-
-    // 明度計算（標準輝度式）
-    const brightness = 0.299*r + 0.587*g + 0.114*b;
-    totalBrightness += brightness;
-  }
-
-  const avgBrightness = totalBrightness / pixelCount;
-
-  // 0〜255 → 攻撃力0〜100換算
-  const attackPower = Math.min(100, Math.floor((avgBrightness / 255) * 100));
-
-  gaugeBar.style.width = attackPower + "%";
-  powerText.textContent = "ATTACK POWER: " + attackPower;
+  photos.prepend(img);
 });
 </script>
 
