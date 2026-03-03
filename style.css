@@ -1,0 +1,101 @@
+:root {
+    --accent: #39ff14;
+    --danger: #ff0055;
+    --bg: #0a0f0a;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+h1 {
+    color: var(--accent);
+    text-shadow: 0 0 15px var(--accent);
+    margin: 15px 0;
+    letter-spacing: 4px;
+}
+
+/* 利用規約モーダル */
+.modal {
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+    background: #111;
+    padding: 30px;
+    border: 2px solid var(--accent);
+    border-radius: 15px;
+    max-width: 85%;
+    box-shadow: 0 0 30px var(--accent);
+}
+
+/* エネミーUI */
+.enemy-container {
+    margin: 10px auto;
+    width: 320px;
+}
+.hp-bar-bg {
+    width: 100%; height: 20px;
+    background: #333;
+    border: 1px solid var(--accent);
+    margin-top: 5px;
+    position: relative;
+}
+.hp-bar-fill {
+    width: 100%; height: 100%;
+    background: var(--accent);
+    transition: width 0.3s ease;
+}
+.damage-popup {
+    height: 30px;
+    font-weight: bold;
+    color: var(--danger);
+    font-size: 24px;
+}
+
+/* カメラビューポート */
+.video-wrapper {
+    position: relative;
+    display: inline-block;
+    border: 2px solid var(--accent);
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000;
+}
+video { width: 320px; height: auto; display: block; }
+#output_canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+}
+
+/* ボタン */
+.btn {
+    margin: 20px 0;
+    padding: 15px 40px;
+    font-size: 18px;
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: black;
+    box-shadow: 0 0 20px var(--accent);
+}
+.btn:disabled { opacity: 0.3; cursor: wait; }
+
+#status { height: 20px; color: var(--accent); margin-bottom: 20px; }
