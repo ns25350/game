@@ -1,227 +1,102 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>狙え！NEON CAMERA</title>
-
-<style>
-:root{
-  --accent:#39ff14;
-  --bg:#0a0f0a;
-  --panel:#111a11;
-}
-
-body{
-  margin:0;
-  background:var(--bg);
-  color:white;
-  font-family:sans-serif;
-  text-align:center;
-  overflow-x:hidden;
-}
-
-/* ローディング画面 */
-.loader{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:999;
-}
-
-.loader-circle{
-  width:80px;
-  height:80px;
-  border:4px solid rgba(57,255,20,0.2);
-  border-top:4px solid var(--accent);
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-  box-shadow:0 0 20px var(--accent);
-}
-
-@keyframes spin{
-  to{ transform:rotate(360deg); }
-}
-
-.container{
-  padding:30px;
-  opacity:0;
-  transition:1s;
-}
-
-.container.active{
-  opacity:1;
-}
-
-h1{
-  color:var(--accent);
-  text-shadow:0 0 15px var(--accent);
-  letter-spacing:4px;
-}
-
-.video-wrapper{
-  position:relative;
-  display:inline-block;
-  margin-top:20px;
-  border:2px solid var(--accent);
-  border-radius:20px;
-  box-shadow:0 0 25px rgba(57,255,20,0.5);
-  overflow: hidden;
-}
-
-video{
-  width:320px;
-  max-width:90%;
-  display: block;
-}
-
-.snipe-btn{
-  margin-top:25px;
-  padding:15px 60px;
-  font-size:22px;
-  background:transparent;
-  border:2px solid var(--accent);
-  color:var(--accent);
-  border-radius:50px;
-  cursor:pointer;
-  transition:0.3s;
-  letter-spacing:4px;
-}
-
-.snipe-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.snipe-btn:hover:not(:disabled){
-  background:var(--accent);
-  color:black;
-  box-shadow:0 0 25px var(--accent);
-  transform:scale(1.05);
-}
-
-#photos{
-  margin-top:30px;
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:15px;
-}
-
-#photos img{
-  width:150px;
-  border-radius:15px;
-  border:2px solid var(--accent);
-  box-shadow:0 0 20px rgba(57,255,20,0.6);
-}
-
-canvas{
-  display:none;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON CAMERA - DB SAVE</title>
+    <style>
+        :root{ --accent:#39ff14; --bg:#0a0f0a; }
+        body{ margin:0; background:var(--bg); color:white; font-family:sans-serif; text-align:center; overflow-x:hidden; }
+        h1{ color:var(--accent); text-shadow:0 0 15px var(--accent); margin-top:20px; letter-spacing:2px; }
+        .video-wrapper{ position:relative; display:inline-block; margin:20px; border:2px solid var(--accent); border-radius:20px; overflow:hidden; box-shadow:0 0 20px rgba(57,255,20,0.4); background:#000; }
+        video{ width:320px; max-width:90vw; display:block; }
+        .btn{ margin-top:10px; padding:15px 50px; font-size:20px; background:transparent; border:2px solid var(--accent); color:var(--accent); border-radius:50px; cursor:pointer; transition:0.3s; font-weight:bold; }
+        .btn:hover{ background:var(--accent); color:black; box-shadow:0 0 20px var(--accent); }
+        .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+        canvas{ display:none; }
+        #status{ margin-top:15px; color:var(--accent); font-weight:bold; min-height:1.5em; }
+    </style>
 </head>
-
 <body>
 
-<div class="loader" id="loader">
-  <div class="loader-circle"></div>
-  <div style="color:#39ff14;margin-top:15px;">LOADING SYSTEM...</div>
+<h1>NEON CAMERA</h1>
+
+<div class="video-wrapper">
+    <video id="video" autoplay playsinline></video>
 </div>
 
-<div class="container" id="main">
-  <h1>NEON CAMERA</h1>
-  <div class="video-wrapper">
-    <video id="video" autoplay playsinline></video>
-  </div>
-  <canvas id="canvas"></canvas>
-  <br>
-  <button class="snipe-btn" id="shootBtn">狙え！</button>
-  <div id="photos"></div>
-</div>
+<canvas id="canvas"></canvas>
+<br>
+<button class="btn" id="shootBtn">狙え！</button>
+<div id="status"></div>
 
 <script type="module">
-  // Firebase SDKの読み込み（CDN版）
+  // Firebase SDKの読み込み
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getStorage, ref, uploadString } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+  import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-  // あなたの新しいプロジェクト設定を反映済み
+  // あなたの設定（databaseURLを追加済み）
   const firebaseConfig = {
-    apiKey: "AIzaSyDsW9g1L2VqKX8jflfuZYoO9VRmjSC8AeA",
-    authDomain: "testt5-e3b9a.firebaseapp.com",
-    projectId: "testt5-e3b9a",
-    storageBucket: "testt5-e3b9a.firebasestorage.app",
-    messagingSenderId: "884425078370",
-    appId: "1:884425078370:web:3b513b08f79ab27a15833b"
+    apiKey: "AIzaSyB4OchbsfGGC_VozMPeBGbr2ZtiMJTWTJg",
+    authDomain: "johou7-275be.firebaseapp.com",
+    databaseURL: "https://johou7-275be-default-rtdb.firebaseio.com",
+    projectId: "johou7-275be",
+    storageBucket: "johou7-275be.firebasestorage.app",
+    messagingSenderId: "840280999329",
+    appId: "1:840280999329:web:d7cefde6ec9953cabb77e0"
   };
 
   const app = initializeApp(firebaseConfig);
-  const storage = getStorage(app);
+  const db = getDatabase(app);
 
-  const loader = document.getElementById("loader");
-  const main = document.getElementById("main");
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
   const shootBtn = document.getElementById("shootBtn");
-  const photos = document.getElementById("photos");
+  const status = document.getElementById("status");
 
-  // ローディング
-  window.addEventListener("load", () => {
-    setTimeout(() => {
-      loader.style.display = "none";
-      main.classList.add("active");
-    }, 1000);
-  });
-
-  // カメラ
+  // カメラ起動
   async function startCamera() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "user" },
+          audio: false 
       });
       video.srcObject = stream;
     } catch (err) {
-      alert("カメラの許可が必要です！");
+      alert("カメラを許可してください！");
+      console.error(err);
     }
   }
   startCamera();
 
-  // 撮影＆アップロード
+  // 撮影と保存
   shootBtn.addEventListener("click", async () => {
+    shootBtn.disabled = true;
+    status.innerText = "転送中...";
+
     const ctx = canvas.getContext("2d");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0);
 
-    const imageData = canvas.toDataURL("image/png");
+    // 容量を抑えるためにwebp形式・画質0.5で変換
+    const imageData = canvas.toDataURL("image/webp", 0.5);
 
     try {
-      shootBtn.innerText = "転送中...";
-      shootBtn.disabled = true;
-
-      const fileName = `neon_${Date.now()}.png`;
-      const storageRef = ref(storage, 'uploads/' + fileName);
-
-      // 保存実行
-      await uploadString(storageRef, imageData, 'data_url');
-      
-      const img = document.createElement("img");
-      img.src = imageData;
-      photos.prepend(img);
-
-      shootBtn.innerText = "成功！";
+      // Databaseの 'photos' フォルダへ保存
+      await push(ref(db, 'photos'), {
+        image: imageData,
+        timestamp: Date.now()
+      });
+      status.innerText = "成功！Databaseを確認せよ";
     } catch (error) {
       console.error(error);
-      alert("保存に失敗。FirebaseのStorageルールを確認してください。");
+      status.innerText = "エラー！ルールを確認してください";
     } finally {
       setTimeout(() => {
-        shootBtn.innerText = "狙え！";
         shootBtn.disabled = false;
-      }, 1500);
+        status.innerText = "";
+      }, 2000);
     }
   });
 </script>
