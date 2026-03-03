@@ -14,14 +14,13 @@ body{
   color:white;
   font-family:sans-serif;
   text-align:center;
-  overflow-x:hidden;
 }
 
-/* ===== 利用規約モーダル ===== */
+/* ===== 利用規約 ===== */
 .terms-overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,0.8);
+  background:rgba(0,0,0,0.85);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -30,33 +29,28 @@ body{
 
 .terms-box{
   width:90%;
-  max-width:400px;
+  max-width:420px;
   background:#111;
   border:2px solid var(--accent);
   border-radius:20px;
   padding:20px;
   box-shadow:0 0 30px var(--accent);
-  transform:translateY(30px);
-  opacity:0;
-  animation:popUp 0.5s forwards;
+  animation:popUp 0.4s ease forwards;
 }
 
 @keyframes popUp{
-  to{
-    transform:translateY(0);
-    opacity:1;
-  }
+  from{ transform:translateY(20px); opacity:0; }
+  to{ transform:translateY(0); opacity:1; }
 }
 
 .terms-box h2{
   color:var(--accent);
-  margin-top:0;
 }
 
 .terms-text{
   font-size:14px;
   text-align:left;
-  max-height:150px;
+  max-height:160px;
   overflow-y:auto;
   margin-bottom:15px;
   line-height:1.6;
@@ -69,8 +63,6 @@ body{
   color:var(--accent);
   border-radius:50px;
   cursor:pointer;
-  transition:0.3s;
-  font-weight:bold;
 }
 
 .terms-btn:hover{
@@ -83,28 +75,25 @@ body{
   position:fixed;
   inset:0;
   background:#000;
-  display:flex;
+  display:none;
   justify-content:center;
   align-items:center;
   flex-direction:column;
   z-index:9999;
-  display:none;
 }
 
 .loader-circle{
-  width:80px;
-  height:80px;
+  width:70px;
+  height:70px;
   border:4px solid rgba(57,255,20,0.2);
   border-top:4px solid var(--accent);
   border-radius:50%;
   animation:spin 1s linear infinite;
-  box-shadow:0 0 20px var(--accent);
 }
 
 .loader-text{
-  margin-top:20px;
+  margin-top:15px;
   color:var(--accent);
-  letter-spacing:3px;
 }
 
 @keyframes spin{
@@ -116,11 +105,9 @@ h1{
   color:var(--accent);
   text-shadow:0 0 15px var(--accent);
   margin-top:20px;
-  letter-spacing:2px;
 }
 
 .video-wrapper{
-  position:relative;
   display:inline-block;
   margin:20px;
   border:2px solid var(--accent);
@@ -137,7 +124,6 @@ video{
 }
 
 .btn{
-  margin-top:10px;
   padding:15px 50px;
   font-size:20px;
   background:transparent;
@@ -145,39 +131,33 @@ video{
   color:var(--accent);
   border-radius:50px;
   cursor:pointer;
-  transition:0.3s;
-  font-weight:bold;
 }
 
 .btn:hover{
   background:var(--accent);
   color:black;
-  box-shadow:0 0 20px var(--accent);
 }
-
-canvas{ display:none; }
 
 #status{
   margin-top:15px;
   color:var(--accent);
   font-weight:bold;
-  min-height:1.5em;
 }
+canvas{ display:none; }
 </style>
 </head>
 <body>
 
-<!-- ===== 利用規約 ===== -->
+<!-- 利用規約 -->
 <div class="terms-overlay" id="termsOverlay">
   <div class="terms-box">
     <h2>利用規約</h2>
     <div class="terms-text">
-      本アプリはカメラ機能を使用します。<br><br>
-      ・撮影された画像はデータベースへ保存される場合があります。<br>
-      ・本サービスは実験的機能を含みます。<br>
-      ・利用者は自己責任で本アプリを利用するものとします。<br>
-      ・不適切な用途での使用は禁止します。<br><br>
-      上記に同意する場合のみご利用ください。
+      本アプリはカメラを使用し、撮影データをFirebaseへ保存します。<br><br>
+      ・画像はデータベースへ送信されます。<br>
+      ・実験的サービスです。<br>
+      ・自己責任で利用してください。<br><br>
+      同意する場合のみ利用可能です。
     </div>
     <button class="terms-btn" id="agreeBtn">同意する</button>
   </div>
@@ -186,7 +166,7 @@ canvas{ display:none; }
 <!-- ローディング -->
 <div class="loader" id="loader">
   <div class="loader-circle"></div>
-  <div class="loader-text">INITIALIZING CAMERA...</div>
+  <div class="loader-text">CONNECTING...</div>
 </div>
 
 <h1>NEON CAMERA</h1>
@@ -200,30 +180,70 @@ canvas{ display:none; }
 <button class="btn" id="shootBtn">狙え！</button>
 <div id="status"></div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+/* 🔥 あなたの設定 */
+const firebaseConfig = {
+  apiKey: "AIzaSyB4OchbsfGGC_VozMPeBGbr2ZtiMJTWTJg",
+  authDomain: "johou7-275be.firebaseapp.com",
+  databaseURL: "https://johou7-275be-default-rtdb.firebaseio.com",
+  projectId: "johou7-275be",
+  storageBucket: "johou7-275be.firebasestorage.app",
+  messagingSenderId: "840280999329",
+  appId: "1:840280999329:web:d7cefde6ec9953cabb77e0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
 const termsOverlay = document.getElementById("termsOverlay");
 const agreeBtn = document.getElementById("agreeBtn");
 const loader = document.getElementById("loader");
 const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const shootBtn = document.getElementById("shootBtn");
+const status = document.getElementById("status");
 
-// 同意ボタン押下
+/* 同意後スタート */
 agreeBtn.addEventListener("click", async () => {
-  termsOverlay.style.display = "none";
-  loader.style.display = "flex";
+  termsOverlay.style.display="none";
+  loader.style.display="flex";
 
-  try {
+  try{
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false
+      video:{ facingMode:"user" },
+      audio:false
     });
     video.srcObject = stream;
 
-    setTimeout(()=>{
-      loader.style.display="none";
-    },1000);
+    setTimeout(()=> loader.style.display="none",1000);
 
-  } catch (err) {
+  }catch(err){
     alert("カメラを許可してください！");
+  }
+});
+
+/* 撮影＆Firebase保存 */
+shootBtn.addEventListener("click", async ()=>{
+  status.innerText="送信中...";
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video,0,0);
+
+  const imageData = canvas.toDataURL("image/webp",0.5);
+
+  try{
+    await push(ref(db,"photos"),{
+      image:imageData,
+      timestamp:Date.now()
+    });
+    status.innerText="保存成功！";
+  }catch(e){
+    console.error(e);
+    status.innerText="保存失敗（ルール確認）";
   }
 });
 </script>
