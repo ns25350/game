@@ -69,13 +69,14 @@ async function predictWebcam() {
     canvasElement.width = video.videoWidth;
     canvasElement.height = video.videoHeight;
 
-    if (poseLandmarker) {
+    if (poseLandmarker && video.currentTime !== 0) {
         lastResult = poseLandmarker.detectForVideo(video, performance.now());
     }
 
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     const drawingUtils = new DrawingUtils(canvasCtx);
-    if (lastResult && lastResult.landmarks) {
+    
+    if (lastResult && lastResult.landmarks && lastResult.landmarks.length > 0) {
         for (const landmark of lastResult.landmarks) {
             drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS, { color: '#39ff14', lineWidth: 2 });
             drawingUtils.drawLandmarks(landmark, { radius: 2, color: "#ffffff" });
@@ -86,31 +87,56 @@ async function predictWebcam() {
 
 // 攻撃ロジック
 shootBtn.addEventListener("click", async () => {
-    if (!lastResult || !lastResult.landmarks[0]) {
-        alert("ターゲットを認識できません！");
+    // 判定開始
+    if (!lastResult || !lastResult.landmarks || lastResult.landmarks.length === 0) {
+        status.innerText = "警告：姿が映っていません！";
         return;
     }
 
     shootBtn.disabled = true;
     const pts = lastResult.landmarks[0];
     let damage = 0;
+    let hitCount = 0;
 
-    // 部位別判定
-    if (pts[0].visibility > 0.6) damage += 150; // HEAD (Nose)
-    if (pts[11].visibility > 0.5 || pts[12].visibility > 0.5) damage += 80; // BODY (Shoulders)
-    if (pts[13].visibility > 0.5 || pts[14].visibility > 0.5) damage += 30; // ARMS (Elbows)
-    if (pts[25].visibility > 0.5 || pts[26].visibility > 0.5) damage += 40; // LEGS (Knees)
+    // --- ダメージ判定（しきい値を 0.2 まで下げて当たりやすく調整） ---
+    const threshold = 0.2;
+
+    // HEAD (鼻: 0)
+    if (pts[0] && pts[0].visibility > threshold) {
+        damage += 150;
+        hitCount++;
+    }
+    // BODY (肩: 11 or 12)
+    if ((pts[11] && pts[11].visibility > threshold) || (pts[12] && pts[12].visibility > threshold)) {
+        damage += 80;
+        hitCount++;
+    }
+    // ARMS (肘: 13, 14 / 手首: 15, 16)
+    [13, 14, 15, 16].forEach(i => {
+        if (pts[i] && pts[i].visibility > threshold) {
+            damage += 30;
+            hitCount++;
+        }
+    });
+    // LEGS (膝: 25, 26)
+    if ((pts[25] && pts[25].visibility > threshold) || (pts[26] && pts[26].visibility > threshold)) {
+        damage += 40;
+        hitCount++;
+    }
+
+    // 万が一判定が1つも通らなかった場合、最低ダメージ 10 を保証
+    if (damage === 0) damage = 10;
 
     // HP更新
     enemyHP = Math.max(0, enemyHP - damage);
     hpBar.style.width = (enemyHP / 10) + "%";
     hpValue.innerText = enemyHP;
     
-    // ダメージ演出
+    // 演出
     damageText.innerText = `-${damage} DMG!!`;
-    status.innerText = "DATABASE送信中...";
+    status.innerText = `${hitCount}箇所の部位を捕捉！送信中...`;
 
-    // 保存用キャンバス作成
+    // 保存
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth;
     saveCanvas.height = video.videoHeight;
@@ -123,17 +149,16 @@ shootBtn.addEventListener("click", async () => {
             hp_left: enemyHP,
             timestamp: Date.now()
         });
-        status.innerText = "転送完了。次を狙え！";
-    } catch (e) { status.innerText = "送信エラー"; }
+    } catch (e) { console.error("Firebase Error", e); }
 
     setTimeout(() => {
         damageText.innerText = "";
         shootBtn.disabled = false;
         if (enemyHP <= 0) {
-            alert("ENEMY DESTROYED! 敵コアを破壊しました。");
+            alert("ENEMY DESTROYED!");
             enemyHP = 1000;
             hpBar.style.width = "100%";
             hpValue.innerText = enemyHP;
         }
-    }, 1000);
+    }, 800);
 });
