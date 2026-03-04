@@ -51,10 +51,10 @@ body {
 .game-area {
     position: relative;
     width: 100%;
-    max-width: 1000px; /* PCでの最大幅 */
+    max-width: 1100px; /* PCでの最大幅を少し広げました */
     margin: 0 auto;
     display: flex;
-    flex-direction: column; /* スマホでは縦並びベース（ボスはabsoluteで浮かせる） */
+    flex-direction: column; 
     align-items: center;
 }
 
@@ -71,34 +71,35 @@ body {
 #video { transform: scaleX(-1); -webkit-transform: scaleX(-1); }
 #output_canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); -webkit-transform: scaleX(-1); }
 
-/* ▼ スマホ用：ボスの配置（従来通りカメラに被る） */
+/* ▼ スマホ用：ボスの配置 ▼ */
 .enemy-container {
     position: absolute;
     top: 50%;
-    left: 10px;
+    left: 40px; /* ★ 左端からしっかり離して見切れ防止 (10px -> 40px) */
     transform: translateY(-50%);
     z-index: 10;
     text-align: center;
-    width: 140px; /* スマホでも少し大きくしました */
+    width: 170px; /* ★ スマホでもさらに大きくしました (140px -> 170px) */
     display: flex; flex-direction: column; align-items: center;
 }
 
-/* ▼ PC用 (画面幅が768px以上)：ボスを左に独立させる！ ▼ */
+/* ▼ PC用 (画面幅が768px以上)：ボスを左に独立させる ▼ */
 @media (min-width: 768px) {
     .game-area {
-        flex-direction: row; /* 横並びに変更 */
+        flex-direction: row; 
         justify-content: center;
-        gap: 30px; /* ボスとカメラの間の隙間 */
+        gap: 40px; /* ボスとカメラの隙間 */
+        padding-left: 50px; /* ★ 画面の左端に余裕を持たせてDMG見切れを完全に防ぐ */
     }
     .enemy-container {
-        position: relative; /* カメラの上から外す */
+        position: relative; 
         top: auto;
         left: auto;
         transform: none;
-        width: 250px; /* PCではボスを超巨大化！ */
+        width: 320px; /* ★ PCではボスをさらに超巨大化！ (250px -> 320px) */
     }
     .video-wrapper {
-        margin: 0; /* 中央寄せを解除して横並びを綺麗にする */
+        margin: 0; 
     }
 }
 
@@ -116,18 +117,18 @@ body {
 .controls { margin-top: 20px; text-align: center; }
 #status { margin-top: 10px; font-size: 1rem; color: #ccc; }
 
-/* ▼ 飛んでくる弾（デカくしました） ▼ */
+/* 飛んでくる弾 */
 .projectile { 
     position: fixed; 
     top: 0; left: 0; 
-    width: 100px; /* 弾をデカく！ */
+    width: 100px; 
     height: auto; 
-    z-index: 9999; /* 必ず一番手前 */
+    z-index: 9999; 
     pointer-events: none; 
     filter: drop-shadow(0 0 10px var(--neon-green)); 
 }
 
-/* ダメージ文字も少しデカく */
+/* ダメージ文字 */
 .dmg-popup { position: fixed; color: var(--neon-pink); font-size: 4rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-pink); animation: floatUpBoss 0.8s ease-out forwards; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); }
 @keyframes floatUpBoss { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -150px) scale(1.2); opacity: 0; } }
 
