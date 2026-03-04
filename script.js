@@ -32,7 +32,11 @@ const partImages = {
     "ARMS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBMex3yPXGQ_lT4ySIeZsPYYUXA5MCpjz45kdzzRARRMu7eYfIaLMHy6C8DYiGhm3i2tsD7iRhKqlQ76KkqqadZN1Ey05Suw4FQsp5MpuFRwxj3y1I6tyBW1OBvPWUlBzfbY629jkGSWU/s200/rubber_band_white.png",
     "LEGS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjECz0u4eiFupkK9nXyfsftjtPNwUybjhstTxfjCs1SpG3VstoYjBrax9bmPrt3_NG0KVjNvzFLbvYUbfqSMTax-yhKVOST_Oy395k9wfU0fWAl825RqLD0xp82GqRizwq31bn1kUtLtCV6/s400/body_foot_side_long_sotogawa.png"
 };
-
+// 画像を事前に読み込ませてキャッシュしておく（弾が透明になるのを防ぐ）
+Object.values(partImages).forEach(src => {
+    const img = new Image();
+    img.src = src;
+});
 const tutorialModal = document.getElementById("tutorial-panel");
 document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
 document.getElementById("start-tutorial-btn").onclick = () => tutorialModal.classList.add("hide-to-menu");
