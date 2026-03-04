@@ -10,26 +10,18 @@
 
 body {
     background-color: var(--bg-dark);
-    color: white;
-    font-family: var(--font-main);
-    margin: 0;
-    overflow-x: hidden;
-    overflow-y: auto; 
+    color: white; font-family: var(--font-main);
+    margin: 0; overflow-x: hidden; overflow-y: auto; 
     min-height: 100vh;
 }
 
 .screen {
     position: fixed; top: 0; left: 0; 
-    width: 100vw; height: 100vh;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    background: var(--bg-dark); z-index: 10;
+    width: 100vw; height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; background: var(--bg-dark); z-index: 10;
 }
 
-.game-layout {
-    position: relative; height: auto; min-height: 100vh;
-    padding: 20px 0 50px 0; justify-content: flex-start;
-}
+.game-layout { position: relative; height: auto; min-height: 100vh; padding: 20px 0 50px 0; justify-content: flex-start; }
 
 .loader { text-align: center; width: 300px; }
 .progress-container { width: 100%; height: 6px; background: #222; margin: 20px 0; border-radius: 3px; overflow: hidden; }
@@ -55,60 +47,90 @@ body {
 .score-table li { margin: 8px 0; font-size: 1.1rem; border-bottom: 1px dashed #333; padding-bottom: 5px; }
 .score-table .part { color: var(--neon-green); font-weight: bold; }
 
-/* ▼ カメラの枠の設定（少し横幅に余裕を持たせる） */
+/* ▼ 新設：ゲームレイアウトの枠組 ▼ */
+.game-area {
+    position: relative;
+    width: 100%;
+    max-width: 1000px; /* PCでの最大幅 */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column; /* スマホでは縦並びベース（ボスはabsoluteで浮かせる） */
+    align-items: center;
+}
+
+/* カメラの枠 */
 .video-wrapper {
     position: relative;
     border: 2px solid var(--neon-blue); background: #000;
     line-height: 0; overflow: hidden;
-    width: 95%; max-width: 700px;
+    width: 95%; max-width: 600px;
     margin: 15px auto; border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
 }
-
 #video, #output_canvas { width: 100%; height: auto; display: block; }
 #video { transform: scaleX(-1); -webkit-transform: scaleX(-1); }
 #output_canvas { position: absolute; top: 0; left: 0; transform: scaleX(-1); -webkit-transform: scaleX(-1); }
 
-/* ▼ ボスの配置（カメラ映像の中の左側に固定） */
+/* ▼ スマホ用：ボスの配置（従来通りカメラに被る） */
 .enemy-container {
     position: absolute;
     top: 50%;
-    left: 10px; /* 左端から少し離す */
+    left: 10px;
     transform: translateY(-50%);
     z-index: 10;
     text-align: center;
-    width: 100px; /* ボスのサイズ */
+    width: 140px; /* スマホでも少し大きくしました */
     display: flex; flex-direction: column; align-items: center;
 }
-.enemy-visual { margin-bottom: 5px; }
-.enemy-glitch { font-size: 0.6rem; margin-top: 5px; color: #fff; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 3px; }
+
+/* ▼ PC用 (画面幅が768px以上)：ボスを左に独立させる！ ▼ */
+@media (min-width: 768px) {
+    .game-area {
+        flex-direction: row; /* 横並びに変更 */
+        justify-content: center;
+        gap: 30px; /* ボスとカメラの間の隙間 */
+    }
+    .enemy-container {
+        position: relative; /* カメラの上から外す */
+        top: auto;
+        left: auto;
+        transform: none;
+        width: 250px; /* PCではボスを超巨大化！ */
+    }
+    .video-wrapper {
+        margin: 0; /* 中央寄せを解除して横並びを綺麗にする */
+    }
+}
+
+.enemy-visual { margin-bottom: 5px; width: 100%; }
+.enemy-glitch { font-size: 0.8rem; margin-top: 5px; color: #fff; background: rgba(0,0,0,0.6); padding: 4px; border-radius: 3px; font-weight:bold; }
 #boss-image { width: 100%; height: auto; filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.5)); transition: transform 0.1s; }
-.boss-hit { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.5) hue-rotate(-50deg) drop-shadow(0 0 20px red) !important; }
-@keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
+.boss-hit { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.5) hue-rotate(-50deg) drop-shadow(0 0 30px red) !important; }
+@keyframes shake { 10%, 90% { transform: translate3d(-4px, 0, 0); } 20%, 80% { transform: translate3d(8px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-12px, 0, 0); } 40%, 60% { transform: translate3d(12px, 0, 0); } }
 
-/* ▼ HPバーをボスの下にコンパクトに表示 */
-.hp-container { width: 100%; height: 15px; border: 1px solid #fff; background: rgba(255,255,255,0.1); position: relative; }
+/* HPバー */
+.hp-container { width: 100%; height: 18px; border: 1px solid #fff; background: rgba(255,255,255,0.1); position: relative; }
 .hp-bar-fill { width: 100%; height: 100%; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); transition: width 0.3s; }
-.hp-label { position: absolute; width: 100%; text-align: center; top: 0; line-height: 15px; font-size: 0.6rem; font-weight: bold; }
+.hp-label { position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px; font-size: 0.7rem; font-weight: bold; }
 
-.controls { margin-top: 15px; text-align: center; }
-#status { margin-top: 10px; font-size: 0.9rem; color: #ccc; }
+.controls { margin-top: 20px; text-align: center; }
+#status { margin-top: 10px; font-size: 1rem; color: #ccc; }
 
-/* ▼ 弾丸とダメージエフェクト */
-/* ▼ 弾丸とダメージエフェクト（ここを上書き） */
+/* ▼ 飛んでくる弾（デカくしました） ▼ */
 .projectile { 
     position: fixed; 
-    top: 0;    /* ← 追加：ここを基準にする */
-    left: 0;   /* ← 追加：ここを基準にする */
-    width: 60px; 
+    top: 0; left: 0; 
+    width: 100px; /* 弾をデカく！ */
     height: auto; 
-    z-index: 9999; /* ← 追加：絶対に一番手前に表示 */
+    z-index: 9999; /* 必ず一番手前 */
     pointer-events: none; 
-    filter: drop-shadow(0 0 8px var(--neon-green)); 
+    filter: drop-shadow(0 0 10px var(--neon-green)); 
 }
-.dmg-popup { position: fixed; color: var(--neon-pink); font-size: 3.5rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-pink); animation: floatUpBoss 0.8s ease-out forwards; z-index: 200; pointer-events: none; transform: translate(-50%, -50%); }
+
+/* ダメージ文字も少しデカく */
+.dmg-popup { position: fixed; color: var(--neon-pink); font-size: 4rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-pink); animation: floatUpBoss 0.8s ease-out forwards; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); }
 @keyframes floatUpBoss { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -150px) scale(1.2); opacity: 0; } }
 
 .result-container { width: 90%; max-width: 600px; text-align: center; }
 .result-list { background: rgba(0,0,0,0.6); border: 1px solid var(--neon-pink); padding: 15px; margin: 20px 0; max-height: 300px; overflow-y: auto; border-radius: 4px; }
-.result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #333; font-size: 0.9rem; }
+.result-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #333; font-size: 1rem; }
