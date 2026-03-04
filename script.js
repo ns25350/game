@@ -26,6 +26,26 @@ const status = document.getElementById("status");
 const hpBar = document.getElementById("hpBar");
 const hpValue = document.getElementById("hpValue");
 
+// --- UI要素 ---
+const tutorialModal = document.getElementById("tutorial-panel");
+const menuBtn = document.getElementById("menu-btn");
+const closeTutorial = document.getElementById("close-tutorial");
+const startTutorialBtn = document.getElementById("start-tutorial-btn");
+
+// --- チュートリアル（遊び方）の開閉アニメーション ---
+function hideTutorial() {
+    // クラスをつけることでCSSの力で左上のハンバーガーに吸い込まれる
+    tutorialModal.classList.add("hide-to-menu");
+}
+
+function showTutorial() {
+    tutorialModal.classList.remove("hide-to-menu");
+}
+
+closeTutorial.onclick = hideTutorial;
+startTutorialBtn.onclick = hideTutorial;
+menuBtn.onclick = showTutorial;
+
 // --- ロード画面の遷移 ---
 window.onload = () => {
     let width = 0;
@@ -41,14 +61,16 @@ window.onload = () => {
     }, 30);
 };
 
-// 同意ボタン
+// --- 同意ボタン ---
 document.getElementById("agreeBtn").onclick = () => {
     document.getElementById("tos-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex";
+    
+    // ゲーム画面に入ると同時にチュートリアルが最前面に表示される
     initGame();
 };
 
-// リトライボタン
+// --- リトライボタン ---
 document.getElementById("retryBtn").onclick = () => {
     enemyHP = 1000;
     attackHistory = [];
@@ -57,7 +79,7 @@ document.getElementById("retryBtn").onclick = () => {
     document.getElementById("game-screen").style.display = "flex";
 };
 
-// --- 初期化 ---
+// --- ゲーム初期化 ---
 async function initGame() {
     status.innerText = "SYSTEM: カメラ起動中...";
     try {
@@ -68,7 +90,6 @@ async function initGame() {
             video.play();
             status.innerText = "SYSTEM: AIコア起動中...";
             
-            // ml5.jsのPoseNetを初期化
             poseNet = ml5.poseNet(video, () => {
                 shootBtn.disabled = false;
                 shootBtn.innerText = "ATTACK START";
@@ -91,7 +112,6 @@ function drawLoop() {
     const canvas = document.getElementById("output_canvas");
     const ctx = canvas.getContext("2d");
 
-    // キャンバスサイズをビデオの解像度に同期
     if (video.videoWidth > 0 && canvas.width !== video.videoWidth) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -103,7 +123,6 @@ function drawLoop() {
         const pose = poses[0].pose;
         const skeleton = poses[0].skeleton;
 
-        // 関節を描画
         pose.keypoints.forEach(kp => {
             if (kp.score > 0.2) {
                 ctx.fillStyle = "#39ff14";
@@ -113,7 +132,6 @@ function drawLoop() {
             }
         });
 
-        // 骨格（線）を描画
         skeleton.forEach(bone => {
             const start = bone[0];
             const end = bone[1];
@@ -130,10 +148,7 @@ function drawLoop() {
 
 // --- 攻撃アクション ---
 shootBtn.onclick = async () => {
-    if (poses.length === 0) {
-        status.innerText = "ERROR: ターゲット未捕捉";
-        return;
-    }
+    if (poses.length === 0) return;
 
     shootBtn.disabled = true;
     const pose = poses[0].pose;
@@ -141,61 +156,28 @@ shootBtn.onclick = async () => {
     let hitParts = [];
     const THRESHOLD = 0.2;
 
-    // 頭部判定
-    if (pose.nose.confidence > THRESHOLD) {
-        damage += 150;
-        hitParts.push("HEAD");
-    }
+    if (pose.nose.confidence > THRESHOLD) { damage += 150; hitParts.push("HEAD"); }
+    if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) { damage += 80; hitParts.push("BODY"); }
 
-    // 胴体判定
-    if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) {
-        damage += 80;
-        hitParts.push("BODY");
-    }
-
-    // 腕の数
     let armCount = 0;
-    ['leftElbow', 'rightElbow', 'leftWrist', 'rightWrist'].forEach(p => {
-        if (pose[p] && pose[p].confidence > THRESHOLD) armCount++;
-    });
-    if (armCount > 0) {
-        damage += (armCount * 30);
-        hitParts.push(`ARMS(x${armCount})`);
-    }
+    ['leftElbow', 'rightElbow', 'leftWrist', 'rightWrist'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) armCount++; });
+    if (armCount > 0) { damage += (armCount * 30); hitParts.push(`ARMS(x${armCount})`); }
 
-    // 足の数
     let legCount = 0;
-    ['leftKnee', 'rightKnee', 'leftAnkle', 'rightAnkle'].forEach(p => {
-        if (pose[p] && pose[p].confidence > THRESHOLD) legCount++;
-    });
-    if (legCount > 0) {
-        damage += (legCount * 40);
-        hitParts.push(`LEGS(x${legCount})`);
-    }
+    ['leftKnee', 'rightKnee', 'leftAnkle', 'rightAnkle'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) legCount++; });
+    if (legCount > 0) { damage += (legCount * 40); hitParts.push(`LEGS(x${legCount})`); }
 
-    // 判定が何も出なかった場合の最低保証
-    if (damage === 0) {
-        damage = 10;
-        hitParts.push("GRAZE");
-    }
+    if (damage === 0) { damage = 10; hitParts.push("GRAZE"); }
 
-    // 履歴保存
-    attackHistory.push({
-        damage: damage,
-        parts: hitParts.join(" + ")
-    });
-
-    // 演出・HP更新
+    attackHistory.push({ damage: damage, parts: hitParts.join(" + ") });
     showDamageEffect(damage);
     enemyHP = Math.max(0, enemyHP - damage);
     updateHP();
 
-    // Firebaseへの画像保存
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth;
     saveCanvas.height = video.videoHeight;
-    const sCtx = saveCanvas.getContext("2d");
-    sCtx.drawImage(video, 0, 0);
+    saveCanvas.getContext("2d").drawImage(video, 0, 0);
 
     try {
         await push(ref(db, 'game_logs'), {
@@ -204,14 +186,11 @@ shootBtn.onclick = async () => {
             parts: hitParts,
             timestamp: Date.now()
         });
-    } catch (e) { console.error(e); }
+    } catch (e) {}
 
-    // 終了判定
     setTimeout(() => {
         shootBtn.disabled = false;
-        if (enemyHP <= 0) {
-            showResults();
-        }
+        if (enemyHP <= 0) showResults();
     }, 800);
 };
 
@@ -236,10 +215,6 @@ function showResults() {
     const list = document.getElementById("result-list");
     list.innerHTML = "";
     attackHistory.forEach((atk, idx) => {
-        list.innerHTML += `
-            <div class="result-item">
-                <span>[LOG_${idx + 1}] ${atk.parts}</span>
-                <span class="neon-text-pink">${atk.damage} DMG</span>
-            </div>`;
+        list.innerHTML += `<div class="result-item"><span>[LOG_${idx + 1}] ${atk.parts}</span><span class="neon-text-pink">${atk.damage} DMG</span></div>`;
     });
 }
