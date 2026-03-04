@@ -1,156 +1,49 @@
-:root {
-    --neon-green: #39ff14;
-    --neon-blue: #00f3ff;
-    --neon-pink: #ff00ff;
-    --bg-dark: #0a0a0b;
-    --font-main: 'Share Tech Mono', monospace;
+/* --- ボス画像と着弾エフェクト --- */
+#boss-image {
+    height: 120px;
+    width: auto;
+    filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.5));
+    transition: transform 0.1s;
 }
 
-* { box-sizing: border-box; }
-
-body {
-    background-color: var(--bg-dark);
-    color: white;
-    font-family: var(--font-main);
-    margin: 0;
-    /* overflow: hidden; を削除し、スマホでスクロールできるように変更 */
-    overflow-x: hidden;
-    overflow-y: auto; 
-    min-height: 100vh;
+/* ボスに弾が当たったときの揺れと発光 */
+.boss-hit {
+    animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+    filter: brightness(1.5) hue-rotate(-50deg) drop-shadow(0 0 20px red) !important;
 }
 
-/* 画面管理 */
-.screen {
+@keyframes shake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+    40%, 60% { transform: translate3d(8px, 0, 0); }
+}
+
+/* 飛んでくる弾（イラスト）の設定 */
+.projectile {
     position: fixed;
-    top: 0; left: 0; 
-    width: 100vw; height: 100vh;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    background: var(--bg-dark);
-    z-index: 10;
-}
-
-/* ゲーム画面だけはスクロールを許容するレイアウトに */
-.game-layout {
-    position: relative;
+    width: 60px;
     height: auto;
-    min-height: 100vh;
-    padding: 20px 0 50px 0;
-    justify-content: flex-start; /* 上詰めに */
-}
-
-/* --- ビデオ周りのサイズ調整 (PC&スマホ両対応) --- */
-.video-wrapper {
-    position: relative;
-    border: 2px solid var(--neon-blue);
-    background: #000;
-    line-height: 0;
-    overflow: hidden;
-    width: 95%; /* スマホでは画面いっぱい */
-    max-width: 600px; /* PCでは最大600pxまでに制限して余白を作る */
-    margin: 15px auto;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
-}
-
-#video, #output_canvas {
-    width: 100%;
-    height: auto; /* アスペクト比を維持 */
-}
-
-#video { transform: scaleX(-1); }
-
-#output_canvas {
-    position: absolute;
-    top: 0; left: 0;
-    transform: scaleX(-1);
-}
-
-#damage-overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 20;
-    display: flex; justify-content: center; align-items: center;
-}
-
-/* --- ハンバーガーメニュー (左上) --- */
-.hamburger {
-    position: fixed;
-    top: 20px; left: 20px;
-    width: 35px; height: 25px;
-    cursor: pointer;
-    z-index: 50;
-    display: flex; flex-direction: column; justify-content: space-between;
-}
-.hamburger span {
-    display: block; width: 100%; height: 3px;
-    background: var(--neon-blue);
-    box-shadow: 0 0 5px var(--neon-blue);
-    transition: 0.3s;
-}
-.hamburger:hover span { background: var(--neon-pink); }
-
-/* --- 遊び方パネル --- */
-.tutorial-modal {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex; justify-content: center; align-items: center;
     z-index: 100;
-    /* 吸い込まれるアニメーションの準備 */
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    transform-origin: top left;
-}
-
-/* クラスが付与されると左上のハンバーガーへ吸い込まれる */
-.tutorial-modal.hide-to-menu {
-    transform: scale(0) translate(-50vw, -50vh);
-    opacity: 0;
     pointer-events: none;
+    filter: drop-shadow(0 0 8px var(--neon-green));
 }
 
-.tutorial-content {
-    background: #0a0a0b;
-    border: 2px solid var(--neon-pink);
-    padding: 30px;
-    position: relative;
-    max-width: 450px; width: 90%;
-    text-align: center;
-    box-shadow: 0 0 25px rgba(255, 0, 255, 0.3);
+/* --- ダメージ演出をボスの位置に直接出すように変更 --- */
+.dmg-popup {
+    position: fixed; /* overlayではなく画面全体に固定 */
+    color: var(--neon-pink);
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-shadow: 0 0 20px var(--neon-pink);
+    animation: floatUpBoss 0.8s ease-out forwards;
+    z-index: 200;
+    pointer-events: none;
+    /* JSで指定した座標の中心に配置するための調整 */
+    transform: translate(-50%, -50%); 
 }
 
-.close-btn {
-    position: absolute; top: 10px; right: 15px;
-    background: none; border: none;
-    color: var(--neon-pink); font-size: 2.5rem;
-    cursor: pointer; line-height: 1;
+@keyframes floatUpBoss {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+    100% { transform: translate(-50%, -150px) scale(1.2); opacity: 0; }
 }
-
-.score-table { margin-top: 20px; text-align: left; background: #111; padding: 15px; border-radius: 5px;}
-.score-table ul { list-style: none; padding: 0; margin: 0; }
-.score-table li { margin: 8px 0; font-size: 1.1rem; border-bottom: 1px dashed #333; padding-bottom: 5px;}
-.score-table .part { color: var(--neon-green); font-weight: bold; }
-
-/* その他UIパーツ */
-.loader { text-align: center; width: 300px; }
-.progress-container { width: 100%; height: 6px; background: #222; margin: 20px 0; overflow: hidden; }
-#load-progress-bar { width: 0%; height: 100%; background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
-.modal-content { background: rgba(255, 255, 255, 0.05); padding: 30px; border: 1px solid var(--neon-blue); max-width: 500px; }
-.tos-text { text-align: left; margin: 20px 0; font-size: 0.9rem; color: #ccc; }
-.neon-title { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); font-size: 2.5rem; margin: 10px 0; }
-.hp-container { width: 90%; max-width: 400px; height: 25px; border: 1px solid #fff; background: rgba(255,255,255,0.1); position: relative; margin: 0 auto; }
-.hp-bar-fill { width: 100%; height: 100%; background: var(--neon-pink); transition: width 0.3s; }
-.hp-label { position: absolute; width: 100%; text-align: center; top: 0; line-height: 25px; font-size: 0.8rem; }
-.controls { margin-top: 15px; text-align: center; }
-.dmg-popup { position: absolute; color: var(--neon-pink); font-size: 3.5rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-pink); animation: floatUp 0.8s forwards; }
-@keyframes floatUp { 0% { transform: scale(0.5) translateY(0); opacity: 1; } 100% { transform: scale(1.2) translateY(-120px); opacity: 0; } }
-.result-container { width: 90%; max-width: 600px; text-align: center; }
-.result-list { background: rgba(0,0,0,0.6); border: 1px solid var(--neon-pink); padding: 15px; margin: 20px 0; max-height: 300px; overflow-y: auto; }
-.result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
-.btn { background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green); font-family: var(--font-main); padding: 12px 30px; cursor: pointer; font-size: 1.1rem; transition: 0.2s; }
-.btn:hover:not(:disabled) { background: var(--neon-green); color: black; box-shadow: 0 0 15px var(--neon-green); }
-.btn:disabled { border-color: #444; color: #444; }
-.neon-text-blue { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
-.neon-text-pink { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
