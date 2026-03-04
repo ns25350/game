@@ -1,6 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
 
 // --- Firebase 設定 ---
 const firebaseConfig = {
@@ -17,9 +16,10 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // --- 変数定義 ---
-let poseLandmarker;
-let lastResult;
+let poseNet;
+let poses = []; // ml5が検知した骨格データを入れる配列
 let enemyHP = 1000;
+
 const video = document.getElementById("video");
 const shootBtn = document.getElementById("shootBtn");
 const status = document.getElementById("status");
@@ -38,108 +38,128 @@ document.getElementById("agreeBtn").addEventListener("click", () => {
     initGame();
 });
 
-// --- 初期化 ---
+// --- 初期化 (ml5.js版) ---
 async function initGame() {
-    status.innerText = "SYSTEM: AIコア起動中...";
-    try {
-        const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
-        poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-            baseOptions: {
-                modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
-                delegate: "GPU"
-            },
-            runningMode: "VIDEO"
-        });
-        startCamera();
-    } catch (e) { 
-        status.innerText = "ERROR: " + e.message;
-        console.error(e);
-    }
-}
-
-async function startCamera() {
+    status.innerText = "SYSTEM: カメラ起動中...";
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
         video.srcObject = stream;
+        
         video.onloadeddata = () => {
-            shootBtn.disabled = false;
-            shootBtn.innerText = "狙え！攻撃開始";
-            status.innerText = "READY: ターゲット捕捉中";
+            video.play();
+            status.innerText = "SYSTEM: AIコア(ml5.js) ロード中...";
+            
+            // ml5のPoseNetを初期化
+            poseNet = ml5.poseNet(video, () => {
+                shootBtn.disabled = false;
+                shootBtn.innerText = "狙え！攻撃開始";
+                status.innerText = "READY: ターゲット捕捉中";
+            });
+
+            // 姿勢が検知されるたびに変数 poses にデータを更新
+            poseNet.on('pose', (results) => {
+                poses = results;
+            });
+
             predictWebcam();
         };
     } catch (e) {
         status.innerText = "CAMERA ERROR: 許可してください";
+        console.error(e);
     }
 }
 
-// --- メインループ ---
-async function predictWebcam() {
+// --- メインループ (描画) ---
+function predictWebcam() {
     const canvasElement = document.getElementById("output_canvas");
     const canvasCtx = canvasElement.getContext("2d");
-    canvasElement.width = video.videoWidth;
-    canvasElement.height = video.videoHeight;
-
-    if (poseLandmarker && video.readyState >= 2) {
-        lastResult = poseLandmarker.detectForVideo(video, performance.now());
+    
+    // ビデオのサイズに合わせる
+    if (video.videoWidth > 0) {
+        canvasElement.width = video.videoWidth;
+        canvasElement.height = video.videoHeight;
     }
 
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    const drawingUtils = new DrawingUtils(canvasCtx);
-    
-    if (lastResult && lastResult.landmarks && lastResult.landmarks.length > 0) {
-        for (const landmark of lastResult.landmarks) {
-            // 緑の線を描画
-            drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS, { color: '#39ff14', lineWidth: 3 });
-            drawingUtils.drawLandmarks(landmark, { radius: 2, color: "#ffffff" });
+
+    // 骨格が検知されていれば描画する
+    if (poses.length > 0) {
+        const pose = poses[0].pose;
+        const skeleton = poses[0].skeleton;
+
+        // 関節（ドット）の描画
+        for (let i = 0; i < pose.keypoints.length; i++) {
+            let keypoint = pose.keypoints[i];
+            // 信頼度が20%以上なら描画
+            if (keypoint.score > 0.2) {
+                canvasCtx.beginPath();
+                canvasCtx.arc(keypoint.position.x, keypoint.position.y, 5, 0, 2 * Math.PI);
+                canvasCtx.fillStyle = "#ffffff";
+                canvasCtx.fill();
+            }
+        }
+
+        // 骨（線）の描画
+        for (let i = 0; i < skeleton.length; i++) {
+            let partA = skeleton[i][0];
+            let partB = skeleton[i][1];
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(partA.position.x, partA.position.y);
+            canvasCtx.lineTo(partB.position.x, partB.position.y);
+            canvasCtx.strokeStyle = "#39ff14";
+            canvasCtx.lineWidth = 3;
+            canvasCtx.stroke();
         }
     }
+    
     window.requestAnimationFrame(predictWebcam);
 }
 
-// --- 攻撃ロジック ---
+// --- 攻撃ロジック (ml5.js版) ---
 shootBtn.addEventListener("click", async () => {
-    // 1. そもそもAIが一人でも認識しているか
-    if (!lastResult || !lastResult.landmarks || !lastResult.landmarks[0]) {
+    // 1. AIが人を認識しているか
+    if (!poses || poses.length === 0) {
         status.innerText = "ERROR: ターゲットが見つかりません";
         return;
     }
 
     shootBtn.disabled = true;
-    const pts = lastResult.landmarks[0]; 
+    const pose = poses[0].pose; 
     
     let currentDamage = 0;
     let hitList = [];
 
-    // --- visibilityを使った判定ロジック ---
-    // 0.0〜1.0の値。0.6なら「60%以上の確度で画面に見えている」場合のみヒット
+    // --- 判定ロジック ---
+    // ml5は score(確信度) が 0.0〜1.0 で返る。0.2(20%)でかなり甘めな判定。
     const THRESHOLD = 0.2; 
     
-    // HEAD (Index 0: 鼻)
-    if (pts[0] && pts[0].visibility > THRESHOLD) {
+    // HEAD (鼻)
+    if (pose.nose.confidence > THRESHOLD) {
         currentDamage += 150;
         hitList.push("HEAD");
     }
 
-    // BODY (Index 11: 左肩 or 12: 右肩)
-    if ((pts[11] && pts[11].visibility > THRESHOLD) || (pts[12] && pts[12].visibility > THRESHOLD)) {
+    // BODY (左右の肩のどちらか)
+    if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) {
         currentDamage += 80;
         hitList.push("BODY");
     }
 
-    // ARMS (Index 13: 左肘, 14: 右肘, 15: 左手首, 16: 右手首)
+    // ARMS (肘と手首)
     let armCount = 0;
-    [13, 14, 15, 16].forEach(i => {
-        if (pts[i] && pts[i].visibility > THRESHOLD) armCount++;
+    ['leftElbow', 'rightElbow', 'leftWrist', 'rightWrist'].forEach(part => {
+        if (pose[part].confidence > THRESHOLD) armCount++;
     });
     if (armCount > 0) {
         currentDamage += (armCount * 30);
         hitList.push(`ARMS(x${armCount})`);
     }
 
-    // LEGS (Index 25: 左膝, 26: 右膝)
+    // LEGS (膝と足首)
     let legCount = 0;
-    if (pts[25] && pts[25].visibility > THRESHOLD) legCount++;
-    if (pts[26] && pts[26].visibility > THRESHOLD) legCount++;
+    ['leftKnee', 'rightKnee', 'leftAnkle', 'rightAnkle'].forEach(part => {
+        if (pose[part].confidence > THRESHOLD) legCount++;
+    });
     if (legCount > 0) {
         currentDamage += (legCount * 40);
         hitList.push(`LEGS(x${legCount})`);
@@ -147,8 +167,8 @@ shootBtn.addEventListener("click", async () => {
 
     // --- 最終チェック ---
     if (currentDamage === 0) {
-        status.innerText = `DEBUG: 判定できる部位がカメラに映っていません`;
-        currentDamage = 10; // かすり傷ダメージなど
+        status.innerText = `DEBUG: 判定基準を満たす部位がありません`;
+        currentDamage = 10; 
     } else {
         status.innerText = `RESULT: ${hitList.join(" + ")}`;
     }
