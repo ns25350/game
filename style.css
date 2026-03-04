@@ -1,4 +1,195 @@
-/* --- ボス画像と着弾エフェクト --- */
+/* =========================================
+   1. 基本設定・カラー変数
+========================================= */
+:root {
+    --neon-green: #39ff14;
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff00ff;
+    --bg-dark: #0a0a0b;
+    --font-main: 'Share Tech Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: white;
+    font-family: var(--font-main);
+    margin: 0;
+    /* スマホでスクロールできるように設定 */
+    overflow-x: hidden;
+    overflow-y: auto; 
+    min-height: 100vh;
+}
+
+/* =========================================
+   2. 画面レイアウト管理
+========================================= */
+.screen {
+    position: fixed;
+    top: 0; left: 0; 
+    width: 100vw; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-dark);
+    z-index: 10;
+}
+
+/* ゲーム画面だけは下にスクロールできるようにする */
+.game-layout {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    padding: 20px 0 50px 0;
+    justify-content: flex-start;
+}
+
+/* =========================================
+   3. UIパーツ (ロード・規約・ボタン)
+========================================= */
+.loader { text-align: center; width: 300px; }
+
+.progress-container {
+    width: 100%; height: 6px;
+    background: #222; margin: 20px 0; border-radius: 3px;
+    overflow: hidden;
+}
+
+#load-progress-bar {
+    width: 0%; height: 100%;
+    background: var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue);
+    transition: width 0.1s;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px;
+    border: 1px solid var(--neon-blue);
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+}
+
+.tos-text {
+    text-align: left; margin: 20px 0; font-size: 0.9rem; color: #ccc; line-height: 1.6;
+}
+
+.btn {
+    background: transparent;
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    font-family: var(--font-main);
+    padding: 12px 30px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+    transition: 0.2s;
+    border-radius: 4px;
+}
+
+.btn:hover:not(:disabled) {
+    background: var(--neon-green);
+    color: black;
+    box-shadow: 0 0 15px var(--neon-green);
+}
+
+.btn:disabled {
+    border-color: #444; color: #444; cursor: not-allowed;
+}
+
+.neon-title {
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue);
+    font-size: 2.5rem;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.neon-text-blue { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+.neon-text-pink { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
+
+/* =========================================
+   4. ハンバーガーメニュー & チュートリアル
+========================================= */
+.hamburger {
+    position: fixed;
+    top: 20px; left: 20px;
+    width: 35px; height: 25px;
+    cursor: pointer;
+    z-index: 50;
+    display: flex; flex-direction: column; justify-content: space-between;
+}
+
+.hamburger span {
+    display: block; width: 100%; height: 3px;
+    background: var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+    transition: 0.3s;
+}
+
+.hamburger:hover span { background: var(--neon-pink); }
+
+.tutorial-modal {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 100;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    transform-origin: top left;
+}
+
+.tutorial-modal.hide-to-menu {
+    transform: scale(0) translate(-50vw, -50vh);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tutorial-content {
+    background: #0a0a0b;
+    border: 2px solid var(--neon-pink);
+    padding: 30px;
+    position: relative;
+    max-width: 450px; width: 90%;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.3);
+}
+
+.close-btn {
+    position: absolute; top: 10px; right: 15px;
+    background: none; border: none;
+    color: var(--neon-pink); font-size: 2.5rem;
+    cursor: pointer; line-height: 1;
+}
+
+.score-table {
+    margin-top: 20px; text-align: left; background: #111; padding: 15px; border-radius: 5px;
+}
+
+.score-table ul { list-style: none; padding: 0; margin: 0; }
+.score-table li { margin: 8px 0; font-size: 1.1rem; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+.score-table .part { color: var(--neon-green); font-weight: bold; }
+
+/* =========================================
+   5. ボス (敵) と HPバー
+========================================= */
+.enemy-container {
+    text-align: center;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.enemy-visual { margin-bottom: 10px; }
+
+.enemy-glitch { font-size: 0.9rem; margin-top: 5px; color: #aaa; }
+
 #boss-image {
     height: 120px;
     width: auto;
@@ -6,7 +197,7 @@
     transition: transform 0.1s;
 }
 
-/* ボスに弾が当たったときの揺れと発光 */
+/* ボスの被弾時アニメーション */
 .boss-hit {
     animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
     filter: brightness(1.5) hue-rotate(-50deg) drop-shadow(0 0 20px red) !important;
@@ -19,7 +210,67 @@
     40%, 60% { transform: translate3d(8px, 0, 0); }
 }
 
-/* 飛んでくる弾（イラスト）の設定 */
+.hp-container {
+    width: 90%; max-width: 400px; height: 25px;
+    border: 1px solid #fff;
+    background: rgba(255,255,255,0.1);
+    position: relative;
+    margin: 0 auto;
+}
+
+.hp-bar-fill {
+    width: 100%; height: 100%;
+    background: var(--neon-pink);
+    box-shadow: 0 0 10px var(--neon-pink);
+    transition: width 0.3s;
+}
+
+.hp-label {
+    position: absolute; width: 100%; text-align: center;
+    top: 0; line-height: 25px; font-size: 0.8rem; font-weight: bold;
+}
+
+/* =========================================
+   6. カメラ・キャンバス (鏡反転 & サイズ制限)
+========================================= */
+.video-wrapper {
+    position: relative;
+    border: 2px solid var(--neon-blue);
+    background: #000;
+    line-height: 0;
+    overflow: hidden;
+    width: 95%; 
+    max-width: 600px; /* PCでも大きくなりすぎないように制限 */
+    margin: 15px auto;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+#video, #output_canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* 鏡のように左右反転 */
+#video {
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+}
+
+#output_canvas {
+    position: absolute;
+    top: 0; left: 0;
+    transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+}
+
+.controls { margin-top: 15px; text-align: center; }
+#status { margin-top: 10px; font-size: 0.9rem; color: #ccc; }
+
+/* =========================================
+   7. 弾丸 & ダメージ演出 (カットイン)
+========================================= */
 .projectile {
     position: fixed;
     width: 60px;
@@ -29,9 +280,8 @@
     filter: drop-shadow(0 0 8px var(--neon-green));
 }
 
-/* --- ダメージ演出をボスの位置に直接出すように変更 --- */
 .dmg-popup {
-    position: fixed; /* overlayではなく画面全体に固定 */
+    position: fixed;
     color: var(--neon-pink);
     font-size: 3.5rem;
     font-weight: bold;
@@ -39,11 +289,34 @@
     animation: floatUpBoss 0.8s ease-out forwards;
     z-index: 200;
     pointer-events: none;
-    /* JSで指定した座標の中心に配置するための調整 */
     transform: translate(-50%, -50%); 
 }
 
 @keyframes floatUpBoss {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
     100% { transform: translate(-50%, -150px) scale(1.2); opacity: 0; }
+}
+
+/* =========================================
+   8. リザルト画面
+========================================= */
+.result-container {
+    width: 90%; max-width: 600px;
+    text-align: center;
+}
+
+.result-list {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--neon-pink);
+    padding: 15px;
+    margin: 20px 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 4px;
+}
+
+.result-item {
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px dashed #333;
+    font-size: 0.9rem;
 }
