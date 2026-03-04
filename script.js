@@ -112,7 +112,7 @@ shootBtn.addEventListener("click", async () => {
 
     // --- visibilityを使った判定ロジック ---
     // 0.0〜1.0の値。0.6なら「60%以上の確度で画面に見えている」場合のみヒット
-    const THRESHOLD = 0.6; 
+    const THRESHOLD = 0.2; 
     
     // HEAD (Index 0: 鼻)
     if (pts[0] && pts[0].visibility > THRESHOLD) {
