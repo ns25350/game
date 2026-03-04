@@ -26,7 +26,6 @@ const hpBar = document.getElementById("hpBar");
 const hpValue = document.getElementById("hpValue");
 const bossImage = document.getElementById("boss-image");
 
-// === 弾丸用イメージの登録 ===
 const partImages = {
     "HEAD": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj1rjxRdqjv0ro97FAExrFQ4dAiGrLHX4vHkL0Zp7ExRTs56lqQzWt0T4TnfDIi1NKkQf51134toAPvJtmfcoPYnbHMNyE0W5_Hhg2Okr-vChDF9TP2P4NbzVHEAy07YmZTleG1M4lYcekw/s400/body_zugaikotsu_skull.png",
     "BODY": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgTeU_cNvLjGF98H_HiEHDMlB0_eB-tHtHYjJ9mGcErmndF2dPFUSlFf19N_BbUbdq9ds-d4ecEoMFAvTn-MUDrRiqykuUSfW4T3FbcyoXQfZQ052I6R5q2cMZV1zJhY5L0Vax1tiZlY_Y/s400/body_shinzou.png",
@@ -34,13 +33,11 @@ const partImages = {
     "LEGS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjECz0u4eiFupkK9nXyfsftjtPNwUybjhstTxfjCs1SpG3VstoYjBrax9bmPrt3_NG0KVjNvzFLbvYUbfqSMTax-yhKVOST_Oy395k9wfU0fWAl825RqLD0xp82GqRizwq31bn1kUtLtCV6/s400/body_foot_side_long_sotogawa.png"
 };
 
-// --- UI要素 ---
 const tutorialModal = document.getElementById("tutorial-panel");
 document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
 document.getElementById("start-tutorial-btn").onclick = () => tutorialModal.classList.add("hide-to-menu");
 document.getElementById("menu-btn").onclick = () => tutorialModal.classList.remove("hide-to-menu");
 
-// --- ロード & 同意画面 ---
 window.onload = () => {
     let width = 0;
     const bar = document.getElementById("load-progress-bar");
@@ -68,7 +65,6 @@ document.getElementById("retryBtn").onclick = () => {
     document.getElementById("game-screen").style.display = "flex";
 };
 
-// --- ゲーム初期化 ---
 async function initGame() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -85,7 +81,6 @@ async function initGame() {
     } catch (e) {}
 }
 
-// --- 描画ループ ---
 function drawLoop() {
     const canvas = document.getElementById("output_canvas");
     const ctx = canvas.getContext("2d");
@@ -111,43 +106,40 @@ function drawLoop() {
     requestAnimationFrame(drawLoop);
 }
 
-// === 弾を撃つアニメーション関数 ===
+// === 右から左へ弾を飛ばすアニメーション ===
 function shootProjectile(imgSrc) {
     const proj = document.createElement("img");
     proj.src = imgSrc;
     proj.className = "projectile";
     document.body.appendChild(proj);
 
-    // ボスの座標を取得
     const bossRect = bossImage.getBoundingClientRect();
     const targetX = bossRect.left + bossRect.width / 2 - 30; // ボスの中心X
     const targetY = bossRect.top + bossRect.height / 2 - 30; // ボスの中心Y
 
-    // 画面右外からスタート
+    // 画面の「右外」からスタート
     const startX = window.innerWidth + 50; 
-    const startY = targetY + (Math.random() * 100 - 50); // 高さは少しバラけさせる
+    const startY = targetY + (Math.random() * 80 - 40); // 軌道を少しバラけさせる
 
-    // Web Animations APIで飛ばす
+    // アニメーション時間を0.6秒にして、横切るのをしっかり見せる
     const animation = proj.animate([
         { transform: `translate(${startX}px, ${startY}px) rotate(0deg) scale(1)` },
         { transform: `translate(${targetX}px, ${targetY}px) rotate(-720deg) scale(0.5)` }
     ], {
-        duration: 400, // 0.4秒で着弾
+        duration: 600, 
         easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         fill: 'forwards'
     });
 
-    animation.onfinish = () => proj.remove(); // 着弾したら画像を消す
+    animation.onfinish = () => proj.remove(); 
 }
 
-// --- ボスにダメージ文字を出す関数 ---
 function showDamageEffect(dmg) {
     const rect = bossImage.getBoundingClientRect();
     const el = document.createElement("div");
     el.className = "dmg-popup";
     el.innerText = `-${dmg} DMG!!`;
     
-    // ボスの真ん中座標を指定
     el.style.left = `${rect.left + rect.width / 2}px`;
     el.style.top = `${rect.top + rect.height / 2}px`;
     
@@ -155,7 +147,6 @@ function showDamageEffect(dmg) {
     setTimeout(() => el.remove(), 800);
 }
 
-// --- 攻撃アクション ---
 shootBtn.onclick = async () => {
     if (poses.length === 0) return;
     shootBtn.disabled = true;
@@ -163,7 +154,7 @@ shootBtn.onclick = async () => {
     const pose = poses[0].pose;
     let damage = 0;
     let hitParts = [];
-    let baseParts = []; // アニメーションさせるイラストの種類
+    let baseParts = []; 
     const THRESHOLD = 0.2;
 
     if (pose.nose.confidence > THRESHOLD) { damage += 150; hitParts.push("HEAD"); baseParts.push("HEAD"); }
@@ -177,24 +168,20 @@ shootBtn.onclick = async () => {
     ['leftKnee', 'rightKnee', 'leftAnkle', 'rightAnkle'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) legCount++; });
     if (legCount > 0) { damage += (legCount * 40); hitParts.push(`LEGS(x${legCount})`); baseParts.push("LEGS"); }
 
-    if (damage === 0) { damage = 10; hitParts.push("GRAZE"); baseParts.push("ARMS"); } // 当たらなかった時は輪ゴムを飛ばす
+    if (damage === 0) { damage = 10; hitParts.push("GRAZE"); baseParts.push("ARMS"); } 
 
     attackHistory.push({ damage: damage, parts: hitParts.join(" + ") });
 
-    // 1. 弾を右から左へ発射！ (複数箇所当たった場合は少し時間をズラして連射する)
     baseParts.forEach((part, index) => {
-        setTimeout(() => {
-            shootProjectile(partImages[part]);
-        }, index * 150); // 0.15秒間隔で連射
+        setTimeout(() => { shootProjectile(partImages[part]); }, index * 150);
     });
 
-    // 弾がボスの位置に到達する時間（400ms） + 連射の遅延分 を計算
-    const hitDelay = (baseParts.length > 0 ? (baseParts.length - 1) * 150 : 0) + 400;
+    // 弾が届く時間 (600ms) に合わせて着弾処理を遅延
+    const hitDelay = (baseParts.length > 0 ? (baseParts.length - 1) * 150 : 0) + 600;
 
-    // 2. 着弾したタイミングでHPを減らし、揺らしてダメージを出す
     setTimeout(() => {
         bossImage.classList.add("boss-hit");
-        setTimeout(() => bossImage.classList.remove("boss-hit"), 300); // 揺れを戻す
+        setTimeout(() => bossImage.classList.remove("boss-hit"), 300);
 
         showDamageEffect(damage);
         enemyHP = Math.max(0, enemyHP - damage);
@@ -204,7 +191,6 @@ shootBtn.onclick = async () => {
         else shootBtn.disabled = false;
     }, hitDelay);
 
-    // Firebase保存 (省略せず裏で実行)
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth; saveCanvas.height = video.videoHeight;
     saveCanvas.getContext("2d").drawImage(video, 0, 0);
