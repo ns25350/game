@@ -32,11 +32,13 @@ const partImages = {
     "ARMS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBMex3yPXGQ_lT4ySIeZsPYYUXA5MCpjz45kdzzRARRMu7eYfIaLMHy6C8DYiGhm3i2tsD7iRhKqlQ76KkqqadZN1Ey05Suw4FQsp5MpuFRwxj3y1I6tyBW1OBvPWUlBzfbY629jkGSWU/s200/rubber_band_white.png",
     "LEGS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjECz0u4eiFupkK9nXyfsftjtPNwUybjhstTxfjCs1SpG3VstoYjBrax9bmPrt3_NG0KVjNvzFLbvYUbfqSMTax-yhKVOST_Oy395k9wfU0fWAl825RqLD0xp82GqRizwq31bn1kUtLtCV6/s400/body_foot_side_long_sotogawa.png"
 };
-// 画像を事前に読み込ませてキャッシュしておく（弾が透明になるのを防ぐ）
+
+// 画像のプリロード
 Object.values(partImages).forEach(src => {
     const img = new Image();
     img.src = src;
 });
+
 const tutorialModal = document.getElementById("tutorial-panel");
 document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
 document.getElementById("start-tutorial-btn").onclick = () => tutorialModal.classList.add("hide-to-menu");
@@ -118,17 +120,17 @@ function shootProjectile(imgSrc) {
     document.body.appendChild(proj);
 
     const bossRect = bossImage.getBoundingClientRect();
-    const targetX = bossRect.left + bossRect.width / 2 - 30; // ボスの中心X
-    const targetY = bossRect.top + bossRect.height / 2 - 30; // ボスの中心Y
+    // 弾が100pxになったので、中心を合わせるために -50px する
+    const targetX = bossRect.left + bossRect.width / 2 - 50; 
+    const targetY = bossRect.top + bossRect.height / 2 - 50; 
 
-    // 画面の「右外」からスタート
-    const startX = window.innerWidth + 50; 
-    const startY = targetY + (Math.random() * 80 - 40); // 軌道を少しバラけさせる
+    // 画面の右外からスタート
+    const startX = window.innerWidth + 100; 
+    const startY = targetY + (Math.random() * 80 - 40); 
 
-    // アニメーション時間を0.6秒にして、横切るのをしっかり見せる
     const animation = proj.animate([
         { transform: `translate(${startX}px, ${startY}px) rotate(0deg) scale(1)` },
-        { transform: `translate(${targetX}px, ${targetY}px) rotate(-720deg) scale(0.5)` }
+        { transform: `translate(${targetX}px, ${targetY}px) rotate(-720deg) scale(0.6)` }
     ], {
         duration: 600, 
         easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -180,7 +182,6 @@ shootBtn.onclick = async () => {
         setTimeout(() => { shootProjectile(partImages[part]); }, index * 150);
     });
 
-    // 弾が届く時間 (600ms) に合わせて着弾処理を遅延
     const hitDelay = (baseParts.length > 0 ? (baseParts.length - 1) * 150 : 0) + 600;
 
     setTimeout(() => {
