@@ -97,58 +97,61 @@ async function predictWebcam() {
 }
 
 // --- 攻撃ロジック ---
-// ... (前半部分はそのまま) ...
+shootBtn.addEventListener("click", async () => {
+    // 1. そもそもAIが一人でも認識しているか
+    if (!lastResult || !lastResult.landmarks || !lastResult.landmarks[0]) {
+        status.innerText = "ERROR: ターゲットが見つかりません";
+        return;
+    }
 
-    shootBtn.disabled = true;
-    const pts = lastResult.landmarks[0]; 
-    
-    let currentDamage = 0;
-    let hitList = [];
+    shootBtn.disabled = true;
+    const pts = lastResult.landmarks[0]; 
+    
+    let currentDamage = 0;
+    let hitList = [];
 
-    // --- 修正版：visibilityを使った判定ロジック ---
-    // 0.0〜1.0の値。0.6なら「60%以上の確度で画面に見えている」場合のみヒット
-    const THRESHOLD = 0.6; 
-    
-    // HEAD (Index 0: 鼻)
-    if (pts[0] && pts[0].visibility > THRESHOLD) {
-        currentDamage += 150;
-        hitList.push("HEAD");
-    }
+    // --- visibilityを使った判定ロジック ---
+    // 0.0〜1.0の値。0.6なら「60%以上の確度で画面に見えている」場合のみヒット
+    const THRESHOLD = 0.6; 
+    
+    // HEAD (Index 0: 鼻)
+    if (pts[0] && pts[0].visibility > THRESHOLD) {
+        currentDamage += 150;
+        hitList.push("HEAD");
+    }
 
-    // BODY (Index 11: 左肩 or 12: 右肩)
-    if ((pts[11] && pts[11].visibility > THRESHOLD) || (pts[12] && pts[12].visibility > THRESHOLD)) {
-        currentDamage += 80;
-        hitList.push("BODY");
-    }
+    // BODY (Index 11: 左肩 or 12: 右肩)
+    if ((pts[11] && pts[11].visibility > THRESHOLD) || (pts[12] && pts[12].visibility > THRESHOLD)) {
+        currentDamage += 80;
+        hitList.push("BODY");
+    }
 
-    // ARMS (Index 13: 左肘, 14: 右肘, 15: 左手首, 16: 右手首)
-    let armCount = 0;
-    [13, 14, 15, 16].forEach(i => {
-        if (pts[i] && pts[i].visibility > THRESHOLD) armCount++;
-    });
-    if (armCount > 0) {
-        currentDamage += (armCount * 30);
-        hitList.push(`ARMS(x${armCount})`);
-    }
+    // ARMS (Index 13: 左肘, 14: 右肘, 15: 左手首, 16: 右手首)
+    let armCount = 0;
+    [13, 14, 15, 16].forEach(i => {
+        if (pts[i] && pts[i].visibility > THRESHOLD) armCount++;
+    });
+    if (armCount > 0) {
+        currentDamage += (armCount * 30);
+        hitList.push(`ARMS(x${armCount})`);
+    }
 
-    // LEGS (Index 25: 左膝, 26: 右膝)
-    let legCount = 0;
-    if (pts[25] && pts[25].visibility > THRESHOLD) legCount++;
-    if (pts[26] && pts[26].visibility > THRESHOLD) legCount++;
-    if (legCount > 0) {
-        currentDamage += (legCount * 40);
-        hitList.push(`LEGS(x${legCount})`);
-    }
+    // LEGS (Index 25: 左膝, 26: 右膝)
+    let legCount = 0;
+    if (pts[25] && pts[25].visibility > THRESHOLD) legCount++;
+    if (pts[26] && pts[26].visibility > THRESHOLD) legCount++;
+    if (legCount > 0) {
+        currentDamage += (legCount * 40);
+        hitList.push(`LEGS(x${legCount})`);
+    }
 
-    // --- 最終チェック ---
-    if (currentDamage === 0) {
-        status.innerText = `DEBUG: 判定できる部位がカメラに映っていません`;
-        currentDamage = 10; // かすり傷ダメージなど
-    } else {
-        status.innerText = `RESULT: ${hitList.join(" + ")}`;
-    }
-
-    // ... (後半のHP減少・Firebase送信処理はそのまま) ...
+    // --- 最終チェック ---
+    if (currentDamage === 0) {
+        status.innerText = `DEBUG: 判定できる部位がカメラに映っていません`;
+        currentDamage = 10; // かすり傷ダメージなど
+    } else {
+        status.innerText = `RESULT: ${hitList.join(" + ")}`;
+    }
 
     // HP減少処理
     enemyHP = Math.max(0, enemyHP - currentDamage);
