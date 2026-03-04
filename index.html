@@ -3,63 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BODY ATTACKER</title>
+    <title>NEON SLAYER - Final Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
 </head>
 <body>
 
-<div id="loading-screen">
+<div id="loading-screen" class="screen">
     <div class="loader">
-        <div class="glitch-text" data-text="INITIALIZING AI...">INITIALIZING AI...</div>
-        <div class="progress-container">
-            <div id="load-progress-bar"></div>
-        </div>
-        <p id="load-status">CONNECTING TO NEURAL NETWORK...</p>
+        <div class="glitch-text">INITIALIZING AI...</div>
+        <div class="progress-container"><div id="load-progress-bar"></div></div>
+        <p>CONNECTING TO NEURAL NETWORK...</p>
     </div>
 </div>
 
-<div id="tosModal" class="modal" style="display: none;">
+<div id="tos-screen" class="screen" style="display: none;">
     <div class="modal-content">
-        <h2 class="neon-text">【重要】利用規約</h2>
-        <p>カメラ画像と解析データをFirebaseへ送信します。<br>同意してサイバー空間へ接続しますか？</p>
-        <button id="agreeBtn" class="btn">同意して接続</button>
+        <h2 class="neon-text-blue">【ACCESS AGREEMENT】</h2>
+        <div class="tos-text">
+            <p>1. カメラ映像から骨格を解析し、サイバー空間へ投影します。</p>
+            <p>2. 解析データおよび静止画はFirebaseへ送信・保存されます。</p>
+            <p>3. 公序良俗に反するターゲットへの攻撃を禁じます。</p>
+        </div>
+        <button id="agreeBtn" class="btn">AGREE & CONNECT</button>
     </div>
 </div>
 
-<button id="infoToggle" class="side-btn">DATA</button>
-<div id="damageTable" class="floating-panel">
-    <h3>ATTACK DATA</h3>
-    <ul>
-        <li><span class="part">HEAD</span> <span class="dmg">150 DMG</span></li>
-        <li><span class="part">BODY</span> <span class="dmg">80 DMG</span></li>
-        <li><span class="part">ARMS</span> <span class="dmg">30 DMG</span></li>
-        <li><span class="part">LEGS</span> <span class="dmg">40 DMG</span></li>
-    </ul>
-</div>
-
-<h1 class="neon-title">NEON SLAYER</h1>
-
-<div class="enemy-container">
-    <div class="enemy-visual">
-        <div class="enemy-glitch">TARGET: CORE-ZERO</div>
+<div id="game-screen" class="screen" style="display: none;">
+    <h1 class="neon-title">NEON SLAYER</h1>
+    
+    <div class="enemy-container">
+        <div class="enemy-visual"><div class="enemy-glitch">TARGET: CORE-ZERO</div></div>
+        <div class="hp-container">
+            <div id="hpBar" class="hp-bar-fill"></div>
+            <div class="hp-label">HP: <span id="hpValue">1000</span> / 1000</div>
+        </div>
     </div>
-    <div class="hp-container">
-        <div id="hpBar" class="hp-bar-fill"></div>
-        <div class="hp-label">HP: <span id="hpValue">1000</span> / 1000</div>
+
+    <div class="video-wrapper">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="output_canvas"></canvas>
+        <div id="damage-overlay"></div>
     </div>
-    <div id="damageText" class="damage-popup"></div>
+
+    <div class="controls">
+        <button class="btn" id="shootBtn" disabled>BOOTING AI...</button>
+        <div id="status">READY TO SCAN</div>
+    </div>
 </div>
 
-<div class="video-wrapper">
-    <video id="video" autoplay playsinline></video>
-    <canvas id="output_canvas"></canvas>
-</div>
-
-<div class="controls">
-    <button class="btn" id="shootBtn" disabled>SYSTEM LOADING...</button>
-    <div id="status"></div>
+<div id="result-screen" class="screen" style="display: none;">
+    <div class="result-container">
+        <h2 class="neon-text-pink">MISSION COMPLETE</h2>
+        <div id="result-list" class="result-list">
+            </div>
+        <button id="retryBtn" class="btn">REBOOT SYSTEM (RETRY)</button>
+    </div>
 </div>
 
 <canvas id="saveCanvas" style="display:none;"></canvas>
