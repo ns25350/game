@@ -1,21 +1,32 @@
+/* --- 基本設定 & フォント統一 --- */
 :root {
     --neon-green: #39ff14;
     --neon-blue: #00f3ff;
     --neon-pink: #ff00ff;
     --bg-dark: #0a0a0b;
+    --font-main: 'Share Tech Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
     background-color: var(--bg-dark);
     color: white;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-main);
     margin: 0;
-    overflow: hidden;
+    overflow: hidden; /* 画面の揺れなどでスクロールバーが出ないように */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
+/* --- 画面管理 (スクリーン) --- */
 .screen {
     position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
+    top: 0; left: 0; 
+    width: 100vw; height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -24,39 +35,50 @@ body {
     z-index: 10;
 }
 
-/* ダメージ演出レイヤー（ビデオの上に重なる） */
-#damage-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* --- ロード画面 --- */
+.loader { text-align: center; width: 300px; }
+.progress-container {
+    width: 100%; height: 6px;
+    background: #222; margin: 20px 0; border-radius: 3px;
     overflow: hidden;
 }
-
-/* ポップアップアニメーション */
-.dmg-popup {
-    position: absolute;
-    color: var(--neon-pink);
-    font-size: 3rem;
-    font-weight: bold;
-    text-shadow: 0 0 15px var(--neon-pink);
-    animation: floatUp 0.8s ease-out forwards;
+#load-progress-bar {
+    width: 0%; height: 100%;
+    background: var(--neon-blue);
+    box-shadow: 0 0 15px var(--neon-blue);
+    transition: width 0.1s;
 }
 
-@keyframes floatUp {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-100px); opacity: 0; }
+/* --- 同意画面 (モーダル風) --- */
+.modal-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 40px;
+    border: 1px solid var(--neon-blue);
+    text-align: center;
+    max-width: 500px;
+}
+.tos-text {
+    text-align: left;
+    margin: 20px 0;
+    font-size: 0.9rem;
+    color: #ccc;
+    line-height: 1.6;
 }
 
-/* HPバー */
-.hp-container {
-    width: 400px;
-    height: 25px;
-    border: 1px solid white;
+/* --- ゲーム画面レイアウト --- */
+.neon-title {
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue);
+    font-size: 2.5rem;
     margin: 10px 0;
+}
+
+.enemy-container { text-align: center; margin-bottom: 10px; }
+.hp-container {
+    width: 400px; height: 25px;
+    border: 1px solid #fff;
     background: rgba(255,255,255,0.1);
+    position: relative;
 }
 .hp-bar-fill {
     width: 100%; height: 100%;
@@ -64,39 +86,98 @@ body {
     box-shadow: 0 0 15px var(--neon-pink);
     transition: width 0.3s;
 }
+.hp-label {
+    position: absolute; width: 100%; text-align: center;
+    top: 0; line-height: 25px; font-size: 0.8rem;
+}
 
-/* リザルト画面のリスト */
+/* --- 【重要】ビデオ・キャンバスの重なりと反転 --- */
+.video-wrapper {
+    position: relative;
+    border: 2px solid var(--neon-blue);
+    background: #000;
+    line-height: 0; /* 下の隙間を排除 */
+    overflow: hidden;
+}
+
+#video {
+    transform: scaleX(-1); /* 左右反転（鏡） */
+    max-width: 100%;
+    height: auto;
+}
+
+#output_canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: scaleX(-1); /* 骨格も反転 */
+}
+
+#damage-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- ダメージ演出 --- */
+.dmg-popup {
+    position: absolute;
+    color: var(--neon-pink);
+    font-size: 3.5rem;
+    font-weight: bold;
+    text-shadow: 0 0 20px var(--neon-pink);
+    animation: floatUp 0.8s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { transform: scale(0.5) translateY(0); opacity: 1; }
+    100% { transform: scale(1.2) translateY(-120px); opacity: 0; }
+}
+
+/* --- リザルト画面 --- */
+.result-container {
+    width: 90%; max-width: 600px;
+    text-align: center;
+}
 .result-list {
-    width: 80%;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--neon-pink);
+    padding: 15px;
+    margin: 20px 0;
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid var(--neon-blue);
-    padding: 20px;
-    margin: 20px 0;
-    background: rgba(0, 243, 255, 0.05);
 }
 .result-item {
-    border-bottom: 1px solid #333;
-    padding: 10px 0;
-    display: flex;
-    justify-content: space-between;
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid #333;
+    font-size: 0.9rem;
 }
 
-/* 共通ボタン */
+/* --- 共通ボタン --- */
 .btn {
     background: transparent;
     border: 1px solid var(--neon-green);
     color: var(--neon-green);
-    font-family: 'Share Tech Mono', monospace;
-    padding: 15px 30px;
+    font-family: var(--font-main);
+    padding: 12px 30px;
     cursor: pointer;
-    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: 0.2s;
 }
-.btn:hover { background: var(--neon-green); color: black; }
-.btn:disabled { color: #444; border-color: #444; }
+.btn:hover:not(:disabled) {
+    background: var(--neon-green);
+    color: black;
+    box-shadow: 0 0 20px var(--neon-green);
+}
+.btn:disabled {
+    border-color: #444; color: #444; cursor: not-allowed;
+}
 
-.tos-text {
-    background: #111; padding: 20px; border: 1px dotted #555;
-    margin-bottom: 20px; line-height: 1.6;
-}
-.video-wrapper { position: relative; border: 2px solid #222; }
+.neon-text-blue { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+.neon-text-pink { color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink); }
