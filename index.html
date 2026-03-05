@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BODY ATTACKERS</title>
+    <title>BODY ATTACKER</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
@@ -22,8 +22,8 @@
     <div class="modal-content">
         <h2 class="neon-text-blue">【ACCESS AGREEMENT】</h2>
         <div class="tos-text">
-            <p>1. カメラ映像から骨格を解析します。カメラの許可をお願いします。</p>
-            <p>2. 解析データおよび静止画は精度向上のため送信・保存される可能性があります。</p>
+            <p>1. カメラ映像から骨格を解析します。カメラの使用許可をお願いします。</p>
+            <p>2. 解析データおよび静止画は判定精度向上のため保存される可能性があります。</p>
             <p>3. 公序良俗に反するターゲットへの攻撃を禁じます。</p>
         </div>
         <button id="agreeBtn" class="btn">AGREE & CONNECT</button>
@@ -40,7 +40,7 @@
         <div class="tutorial-content">
             <button id="close-tutorial" class="close-btn">&times;</button>
             <h2 class="neon-text-blue">HOW TO PLAY</h2>
-            <p>画面に攻撃に使う部位を写して<br><span class="neon-text-pink">【ATTACK START】</span>ボタンを押せ！</p>
+            <p>弾にする部位を写して<br><span class="neon-text-pink">【ATTACK START】</span>ボタンを押せ！</p>
             <p style="color: red; font-weight: bold; margin-top: 10px;">⚠ 警告: ターゲットも反撃してきます！ ⚠</p>
             <div class="score-table">
                 <h3>- DAMAGE DATA -</h3>
@@ -57,8 +57,12 @@
         </div>
     </div>
 
-    <h1 class="neon-title">BODY ATTACKERS</h1>
+    <h1 class="neon-title">BODY ATTACKERS<span id="stage-display" style="font-size: 0.5em; color: var(--neon-pink);">[STAGE 1]</span></h1>
     
+    <div id="stage-cutin" class="stage-cutin" style="display: none;">
+        <h1 id="stage-cutin-text" class="neon-text-blue">STAGE 1</h1>
+    </div>
+
     <div class="game-area">
         <div class="enemy-container">
             <div class="enemy-visual">
@@ -93,7 +97,8 @@
     <div class="result-container">
         <h2 id="result-title" class="neon-text-pink">MISSION COMPLETE</h2>
         <div id="result-list" class="result-list"></div>
-        <button id="retryBtn" class="btn">REBOOT SYSTEM (RETRY)</button>
+        <button id="nextBtn" class="btn" style="display: none;">NEXT STAGE</button>
+        <button id="retryBtn" class="btn" style="display: none;">RETRY (STAGE 1)</button>
     </div>
 </div>
 
