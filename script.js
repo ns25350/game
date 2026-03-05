@@ -26,14 +26,19 @@ const hpBar = document.getElementById("hpBar");
 const hpValue = document.getElementById("hpValue");
 const bossImage = document.getElementById("boss-image");
 
+// ▼▼▼ ここに後からリンクを貼り替えてください ▼▼▼
 const partImages = {
     "HEAD": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj1rjxRdqjv0ro97FAExrFQ4dAiGrLHX4vHkL0Zp7ExRTs56lqQzWt0T4TnfDIi1NKkQf51134toAPvJtmfcoPYnbHMNyE0W5_Hhg2Okr-vChDF9TP2P4NbzVHEAy07YmZTleG1M4lYcekw/s400/body_zugaikotsu_skull.png",
     "BODY": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgTeU_cNvLjGF98H_HiEHDMlB0_eB-tHtHYjJ9mGcErmndF2dPFUSlFf19N_BbUbdq9ds-d4ecEoMFAvTn-MUDrRiqykuUSfW4T3FbcyoXQfZQ052I6R5q2cMZV1zJhY5L0Vax1tiZlY_Y/s400/body_shinzou.png",
     "ARMS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBMex3yPXGQ_lT4ySIeZsPYYUXA5MCpjz45kdzzRARRMu7eYfIaLMHy6C8DYiGhm3i2tsD7iRhKqlQ76KkqqadZN1Ey05Suw4FQsp5MpuFRwxj3y1I6tyBW1OBvPWUlBzfbY629jkGSWU/s200/rubber_band_white.png",
-    "LEGS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjECz0u4eiFupkK9nXyfsftjtPNwUybjhstTxfjCs1SpG3VstoYjBrax9bmPrt3_NG0KVjNvzFLbvYUbfqSMTax-yhKVOST_Oy395k9wfU0fWAl825RqLD0xp82GqRizwq31bn1kUtLtCV6/s400/body_foot_side_long_sotogawa.png"
+    
+    // 以下は仮の画像（プレースホルダー）です。イラストができたらURLを書き換えてください。
+    "WAIST": "https://via.placeholder.com/100/ff00ff/ffffff?text=WAIST",
+    "KNEE":  "https://via.placeholder.com/100/00f3ff/ffffff?text=KNEE",
+    "ANKLE": "https://via.placeholder.com/100/39ff14/ffffff?text=ANKLE"
 };
+// ▲▲▲ 画像リンク設定箇所 ▲▲▲
 
-// 画像のプリロード
 Object.values(partImages).forEach(src => {
     const img = new Image();
     img.src = src;
@@ -63,12 +68,11 @@ document.getElementById("agreeBtn").onclick = () => {
     initGame();
 };
 
-// ▼▼▼ ここを修正（リトライ時のボタン復活） ▼▼▼
 document.getElementById("retryBtn").onclick = () => {
     enemyHP = 1000;
     attackHistory = [];
     updateHP();
-    shootBtn.disabled = false; // ★ ここを追加してボタンを押せるようにしました！
+    shootBtn.disabled = false;
     document.getElementById("result-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex";
 };
@@ -162,17 +166,37 @@ shootBtn.onclick = async () => {
     let baseParts = []; 
     const THRESHOLD = 0.2;
 
+    // 1. 頭 (HEAD)
     if (pose.nose.confidence > THRESHOLD) { damage += 150; hitParts.push("HEAD"); baseParts.push("HEAD"); }
+    
+    // 2. 胴体 (BODY: 肩で判定)
     if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) { damage += 80; hitParts.push("BODY"); baseParts.push("BODY"); }
 
+    // 3. 腕 (ARMS: 肘と手首)
     let armCount = 0;
     ['leftElbow', 'rightElbow', 'leftWrist', 'rightWrist'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) armCount++; });
     if (armCount > 0) { damage += (armCount * 30); hitParts.push(`ARMS(x${armCount})`); baseParts.push("ARMS"); }
 
-    let legCount = 0;
-    ['leftKnee', 'rightKnee', 'leftAnkle', 'rightAnkle'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) legCount++; });
-    if (legCount > 0) { damage += (legCount * 40); hitParts.push(`LEGS(x${legCount})`); baseParts.push("LEGS"); }
+    // ▼▼▼ 新規追加部位 ▼▼▼
 
+    // 4. 腰 (WAIST: 股関節)
+    let waistCount = 0;
+    ['leftHip', 'rightHip'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) waistCount++; });
+    if (waistCount > 0) { damage += (waistCount * 60); hitParts.push(`WAIST(x${waistCount})`); baseParts.push("WAIST"); }
+
+    // 5. 膝 (KNEE)
+    let kneeCount = 0;
+    ['leftKnee', 'rightKnee'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) kneeCount++; });
+    if (kneeCount > 0) { damage += (kneeCount * 50); hitParts.push(`KNEE(x${kneeCount})`); baseParts.push("KNEE"); }
+
+    // 6. 足首 (ANKLE: 映りにくいため高得点！)
+    let ankleCount = 0;
+    ['leftAnkle', 'rightAnkle'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) ankleCount++; });
+    if (ankleCount > 0) { damage += (ankleCount * 120); hitParts.push(`ANKLE(x${ankleCount})`); baseParts.push("ANKLE"); }
+
+    // ▲▲▲ 新規追加ここまで ▲▲▲
+
+    // どこにも当たらなかった場合 (GRAZE)
     if (damage === 0) { damage = 10; hitParts.push("GRAZE"); baseParts.push("ARMS"); } 
 
     attackHistory.push({ damage: damage, parts: hitParts.join(" + ") });
