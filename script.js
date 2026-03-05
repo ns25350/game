@@ -14,19 +14,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ▼▼▼ ステージデータ（1〜10） ▼▼▼
 const STAGE_DATA = [
-    { hp: 1000, atk: 80, interval: 1000 },   // Stage 1 (チュートリアルレベル)
-    { hp: 1500, atk: 100, interval: 900 },   // Stage 2
-    { hp: 2500, atk: 120, interval: 800 },   // Stage 3
-    { hp: 10000, atk: 200, interval: 500 },  // Stage 4 (★ここから無理ゲー化)
-    { hp: 15000, atk: 300, interval: 400 },  // Stage 5
-    { hp: 25000, atk: 400, interval: 350 },  // Stage 6
-    { hp: 40000, atk: 500, interval: 300 },  // Stage 7
-    { hp: 60000, atk: 600, interval: 250 },  // Stage 8
-    { hp: 80000, atk: 800, interval: 200 },  // Stage 9
-    { hp: 100000, atk: 1000, interval: 150 } // Stage 10 (ラスボス)
+    { hp: 1000, atk: 80, interval: 1000 },
+    { hp: 1500, atk: 100, interval: 900 },
+    { hp: 2500, atk: 120, interval: 800 },
+    { hp: 10000, atk: 200, interval: 500 },  // ステージ4から地獄
+    { hp: 15000, atk: 300, interval: 400 },
+    { hp: 25000, atk: 400, interval: 350 },
+    { hp: 40000, atk: 500, interval: 300 },
+    { hp: 60000, atk: 600, interval: 250 },
+    { hp: 80000, atk: 800, interval: 200 },
+    { hp: 100000, atk: 1000, interval: 150 }
 ];
+
+// ▼ ダメージ設定とバフ変数 ▼
+const baseValues = [150, 80, 60, 30, 50, 120];
+let currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
+let buffAttacksLeft = 0; // KNEEバフの残り回数
 
 let poseNet;
 let poses = [];
@@ -34,7 +38,6 @@ let attackHistory = [];
 let enemyAttackInterval; 
 let isGameActive = false; 
 
-// 現在のゲームステータス
 let currentStage = 1;
 let currentMaxEnemyHP = 1000;
 let enemyHP = 1000;
@@ -61,7 +64,6 @@ const partImages = {
 
 const hankoImageSrc = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgrcGrCSf_es99vaom5Jximsz0CFDKXsG01zyseZNkEKrkEV43pZub4mzLHV1dpyiiHhOrkU2GtfUVuhn3mUGV0-2SO0_pzcrMeyJie77ydVg2CehkszRM5WFkdrrYmNLdCyw1Ov9Bj4il2/s400/hanko_kakuin.png";
 
-// 画像のプリロード
 Object.values(partImages).forEach(src => { const img = new Image(); img.src = src; });
 const hankoImg = new Image(); hankoImg.src = hankoImageSrc;
 
@@ -69,49 +71,56 @@ const tutorialModal = document.getElementById("tutorial-panel");
 document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
 document.getElementById("menu-btn").onclick = () => tutorialModal.classList.remove("hide-to-menu");
 
-// ★ ステージを開始する関数
-function startStage() {
-    isGameActive = false; // カットイン中は操作無効
-    if (enemyAttackInterval) clearInterval(enemyAttackInterval);
-    
-    // ステージパラメータのセット
-    const data = STAGE_DATA[currentStage - 1];
-    currentMaxEnemyHP = data.hp;
-    enemyHP = data.hp;
-    currentEnemyAtk = data.atk;
-    currentEnemyInterval = data.interval;
-    
-    // プレイヤーのHPと状態リセット
-    playerHP = 1000;
-    attackHistory = [];
-    updateHP();
-    
-    // UIのテキスト更新
-    document.getElementById("stage-display").innerText = `[STAGE ${currentStage}]`;
-
-    // カットイン演出の表示
-    const cutin = document.getElementById("stage-cutin");
-    const cutinText = document.getElementById("stage-cutin-text");
-    cutinText.innerText = `STAGE ${currentStage}`;
-    
-    cutin.style.display = "block";
-    cutin.classList.remove("anim-slide-in");
-    void cutin.offsetWidth; // アニメーションのリセット用ハック
-    cutin.classList.add("anim-slide-in");
-
-    // 2秒後（カットイン終了後）に戦闘開始
-    setTimeout(() => {
-        cutin.style.display = "none";
-        isGameActive = true;
-        shootBtn.disabled = false;
-        startEnemyAttack(); // 敵の攻撃開始
-    }, 2000);
+// ★ ダメージをシャッフルする関数
+function shuffleDamages() {
+    let values = [...baseValues];
+    for (let i = values.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [values[i], values[j]] = [values[j], values[i]];
+    }
+    const keys = ["HEAD", "BODY", "WAIST", "ARMS", "KNEE", "ANKLE"];
+    keys.forEach((key, index) => {
+        currentDamages[key] = values[index];
+    });
 }
 
+// ★ ステージ準備（ブリーフィングの表示）
+function prepareStage() {
+    shuffleDamages();
+    buffAttacksLeft = 0; // バフをリセット
+    
+    document.getElementById("stage-info-title").innerText = `STAGE ${currentStage} BRIEFING`;
+    const list = document.getElementById("stage-info-list");
+    list.innerHTML = "";
+    for(let key in currentDamages) {
+        list.innerHTML += `<li><span class="part">${key}</span>: ${currentDamages[key]} DMG</li>`;
+    }
+    
+    let desc = "⚠️ 各部位の攻撃力がシャッフルされた！";
+    // ステージ3〜6の場合はKNEEバフの説明を追加
+    if (currentStage >= 3 && currentStage <= 6) {
+        desc += "<br><br><span style='color:#ffeb3b; text-shadow: 0 0 10px #ffeb3b;'>【特殊ルール発動】<br>KNEE（膝）をスキャンすると、次の2回の攻撃ダメージが2倍になるぞ！！</span>";
+    }
+    document.getElementById("stage-info-desc").innerHTML = desc;
+    
+    document.getElementById("game-screen").style.display = "flex";
+    document.getElementById("stage-info-panel").classList.remove("hide-to-menu");
+}
+
+// チュートリアル後の開始（ステージ1はシャッフルなし）
 document.getElementById("start-tutorial-btn").onclick = () => {
     tutorialModal.classList.add("hide-to-menu");
-    currentStage = 1; // 最初から
-    startStage();
+    currentStage = 1;
+    currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
+    buffAttacksLeft = 0;
+    document.getElementById("game-screen").style.display = "flex";
+    startStageSequence();
+};
+
+// ブリーフィング画面からの開始
+document.getElementById("start-stage-btn").onclick = () => {
+    document.getElementById("stage-info-panel").classList.add("hide-to-menu");
+    startStageSequence();
 };
 
 window.onload = () => {
@@ -133,20 +142,18 @@ document.getElementById("agreeBtn").onclick = () => {
     initGame();
 };
 
-// 次のステージへ進むボタン
 document.getElementById("nextBtn").onclick = () => {
     currentStage++;
     document.getElementById("result-screen").style.display = "none";
-    document.getElementById("game-screen").style.display = "flex";
-    startStage();
+    prepareStage(); // ステージ2以降は準備画面へ
 };
 
-// 負けた時、または全クリ後に最初からやり直すボタン
 document.getElementById("retryBtn").onclick = () => {
     currentStage = 1;
     document.getElementById("result-screen").style.display = "none";
-    document.getElementById("game-screen").style.display = "flex";
-    startStage();
+    currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
+    buffAttacksLeft = 0;
+    startStageSequence(); // ステージ1は即開始
 };
 
 async function initGame() {
@@ -199,7 +206,6 @@ function shootProjectile(imgSrc) {
     const bossRect = bossImage.getBoundingClientRect();
     const targetX = bossRect.left + bossRect.width / 2 - 50; 
     const targetY = bossRect.top + bossRect.height / 2 - 50; 
-
     const startX = window.innerWidth + 100; 
     const startY = targetY + (Math.random() * 80 - 40); 
 
@@ -211,7 +217,39 @@ function shootProjectile(imgSrc) {
     animation.onfinish = () => proj.remove(); 
 }
 
-// 敵の攻撃ロジック
+function startStageSequence() {
+    isGameActive = false;
+    if (enemyAttackInterval) clearInterval(enemyAttackInterval);
+    
+    const data = STAGE_DATA[currentStage - 1];
+    currentMaxEnemyHP = data.hp;
+    enemyHP = data.hp;
+    currentEnemyAtk = data.atk;
+    currentEnemyInterval = data.interval;
+    
+    playerHP = 1000;
+    attackHistory = [];
+    updateHP();
+    
+    document.getElementById("stage-display").innerText = `[STAGE ${currentStage}]`;
+
+    const cutin = document.getElementById("stage-cutin");
+    const cutinText = document.getElementById("stage-cutin-text");
+    cutinText.innerText = `STAGE ${currentStage}`;
+    
+    cutin.style.display = "block";
+    cutin.classList.remove("anim-slide-in");
+    void cutin.offsetWidth;
+    cutin.classList.add("anim-slide-in");
+
+    setTimeout(() => {
+        cutin.style.display = "none";
+        isGameActive = true;
+        shootBtn.disabled = false;
+        startEnemyAttack();
+    }, 2000);
+}
+
 function startEnemyAttack() {
     if (enemyAttackInterval) clearInterval(enemyAttackInterval);
     enemyAttackInterval = setInterval(() => {
@@ -236,9 +274,9 @@ function startEnemyAttack() {
 
         animation.onfinish = () => {
             proj.remove();
-            takePlayerDamage(currentEnemyAtk); // ステージごとの攻撃力
+            takePlayerDamage(currentEnemyAtk);
         };
-    }, currentEnemyInterval); // ステージごとの攻撃頻度
+    }, currentEnemyInterval); 
 }
 
 function takePlayerDamage(dmg) {
@@ -260,7 +298,6 @@ function takePlayerDamage(dmg) {
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 800);
 
-    // プレイヤーが死んだ場合（負け＝ステージ1へ）
     if (playerHP <= 0) {
         isGameActive = false;
         clearInterval(enemyAttackInterval);
@@ -279,6 +316,7 @@ function showDamageEffect(dmg) {
     setTimeout(() => el.remove(), 800);
 }
 
+// === 攻撃ボタン処理（バフ計算を組み込み！） ===
 shootBtn.onclick = async () => {
     if (poses.length === 0 || !isGameActive) return;
     shootBtn.disabled = true;
@@ -287,30 +325,62 @@ shootBtn.onclick = async () => {
     let damage = 0;
     let hitParts = [];
     let baseParts = []; 
-    const THRESHOLD = 0.18;
+    const THRESHOLD = 0.2;
 
-    if (pose.nose.confidence > THRESHOLD) { damage += 150; hitParts.push("HEAD"); baseParts.push("HEAD"); }
-    if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) { damage += 80; hitParts.push("BODY"); baseParts.push("BODY"); }
+    // シャッフルされた currentDamages を使って計算
+    let headCount = 0;
+    if (pose.nose.confidence > THRESHOLD) headCount++;
+    if (headCount > 0) { damage += currentDamages.HEAD; hitParts.push("HEAD"); baseParts.push("HEAD"); }
+
+    let bodyCount = 0;
+    if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) bodyCount++;
+    if (bodyCount > 0) { damage += currentDamages.BODY; hitParts.push("BODY"); baseParts.push("BODY"); }
 
     let armCount = 0;
     ['leftElbow', 'rightElbow', 'leftWrist', 'rightWrist'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) armCount++; });
-    if (armCount > 0) { damage += (armCount * 30); hitParts.push(`ARMS(x${armCount})`); baseParts.push("ARMS"); }
+    if (armCount > 0) { damage += (armCount * currentDamages.ARMS); hitParts.push(`ARMS(x${armCount})`); baseParts.push("ARMS"); }
 
     let waistCount = 0;
     ['leftHip', 'rightHip'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) waistCount++; });
-    if (waistCount > 0) { damage += (waistCount * 60); hitParts.push(`WAIST(x${waistCount})`); baseParts.push("WAIST"); }
+    if (waistCount > 0) { damage += (waistCount * currentDamages.WAIST); hitParts.push(`WAIST(x${waistCount})`); baseParts.push("WAIST"); }
 
     let kneeCount = 0;
     ['leftKnee', 'rightKnee'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) kneeCount++; });
-    if (kneeCount > 0) { damage += (kneeCount * 50); hitParts.push(`KNEE(x${kneeCount})`); baseParts.push("KNEE"); }
+    if (kneeCount > 0) { damage += (kneeCount * currentDamages.KNEE); hitParts.push(`KNEE(x${kneeCount})`); baseParts.push("KNEE"); }
 
     let ankleCount = 0;
     ['leftAnkle', 'rightAnkle'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) ankleCount++; });
-    if (ankleCount > 0) { damage += (ankleCount * 120); hitParts.push(`ANKLE(x${ankleCount})`); baseParts.push("ANKLE"); }
+    if (ankleCount > 0) { damage += (ankleCount * currentDamages.ANKLE); hitParts.push(`ANKLE(x${ankleCount})`); baseParts.push("ANKLE"); }
 
     if (damage === 0) { damage = 10; hitParts.push("GRAZE"); baseParts.push("ARMS"); } 
 
-    attackHistory.push({ damage: damage, parts: hitParts.join(" + ") });
+    // ★ バフの適用（前回の攻撃でKNEEを認識していればダメージ2倍）
+    let isBuffedAttack = false;
+    if (buffAttacksLeft > 0) {
+        damage *= 2;
+        buffAttacksLeft--;
+        isBuffedAttack = true;
+    }
+
+    // ★ 今回KNEEを認識したら、次の2回の攻撃をバフ状態にする（ステージ3〜6のみ）
+    let buffTriggered = false;
+    if (currentStage >= 3 && currentStage <= 6 && kneeCount > 0) {
+        buffAttacksLeft = 2; // バフを2回分チャージ！
+        buffTriggered = true;
+    }
+
+    let logText = hitParts.join(" + ");
+    if (isBuffedAttack) logText = "★CRITICAL★ " + logText;
+    attackHistory.push({ damage: damage, parts: logText });
+
+    // バフ発動時の黄色いポップアップ演出
+    if (isBuffedAttack) {
+        const el = document.createElement("div"); el.className = "buff-popup"; el.innerText = "CRITICAL x2 !!";
+        document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
+    } else if (buffTriggered) {
+        const el2 = document.createElement("div"); el2.className = "buff-popup"; el2.innerText = "KNEE BUFF +2 ATKS!";
+        el2.style.top = "40%"; document.body.appendChild(el2); setTimeout(() => el2.remove(), 1000);
+    }
 
     baseParts.forEach((part, index) => {
         setTimeout(() => { shootProjectile(partImages[part]); }, index * 150);
@@ -328,7 +398,6 @@ shootBtn.onclick = async () => {
         enemyHP = Math.max(0, enemyHP - damage);
         updateHP();
 
-        // 敵を倒した場合
         if (enemyHP <= 0) {
             isGameActive = false;
             clearInterval(enemyAttackInterval);
@@ -341,13 +410,13 @@ shootBtn.onclick = async () => {
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth; saveCanvas.height = video.videoHeight;
     saveCanvas.getContext("2d").drawImage(video, 0, 0);
-    try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.8), totalDamage: damage, parts: hitParts }); } catch (e) {}
+    // ★画像劣化を防ぐため、画質を 0.8 に引き上げました！
+    try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.8), totalDamage: damage, parts: logText }); } catch (e) {}
 };
 
 function updateHP() {
     hpValue.innerText = enemyHP;
-    hpBar.style.width = ((enemyHP / currentMaxEnemyHP) * 100) + "%"; // 最大HPに対する割合に修正
-    
+    hpBar.style.width = ((enemyHP / currentMaxEnemyHP) * 100) + "%"; 
     playerHpValue.innerText = playerHP;
     playerHpBar.style.width = (playerHP / 10) + "%";
     
@@ -360,7 +429,6 @@ function updateHP() {
     }
 }
 
-// リザルト表示処理
 function showResults(isPlayerWin) {
     document.getElementById("game-screen").style.display = "none";
     document.getElementById("result-screen").style.display = "flex";
@@ -371,14 +439,12 @@ function showResults(isPlayerWin) {
 
     if (isPlayerWin) {
         if (currentStage < 10) {
-            // ステージ1〜9クリア時
             title.innerText = `STAGE ${currentStage} CLEAR!!`;
             title.style.color = "var(--neon-pink)";
             title.style.textShadow = "0 0 10px var(--neon-pink)";
             nextBtn.style.display = "inline-block";
             retryBtn.style.display = "none";
         } else {
-            // ステージ10（ラスボス）クリア時
             title.innerText = "ALL STAGE CLEAR!!!";
             title.style.color = "var(--neon-blue)";
             title.style.textShadow = "0 0 20px var(--neon-blue)";
@@ -387,7 +453,6 @@ function showResults(isPlayerWin) {
             retryBtn.innerText = "PLAY AGAIN (STAGE 1)";
         }
     } else {
-        // ゲームオーバー（負け）時
         title.innerText = "GAME OVER";
         title.style.color = "var(--neon-red)";
         title.style.textShadow = "0 0 20px var(--neon-red)";
