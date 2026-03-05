@@ -31,13 +31,7 @@ const baseValues = [150, 80, 60, 30, 50, 120];
 let currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
 let buffAttacksLeft = 0; 
 
-// ▼ プレイヤーステータス管理 ▼
-let playerStats = {
-    maxHp: 1000,
-    baseAtk: 10,
-    critRate: 5,   // %
-    critDmg: 50    // %
-};
+let playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
 let availableMaterials = 0;
 let playerHP = 1000;
 
@@ -117,7 +111,6 @@ function prepareStage() {
 document.getElementById("start-tutorial-btn").onclick = () => {
     tutorialModal.classList.add("hide-to-menu");
     currentStage = 1;
-    // ステータス初期化
     playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
     availableMaterials = 0;
     playerHP = playerStats.maxHp;
@@ -151,18 +144,15 @@ document.getElementById("agreeBtn").onclick = () => {
     initGame();
 };
 
-// ▼ 次のステージへ行く前に「強化フェーズ」を挟む ▼
 document.getElementById("nextBtn").onclick = () => {
     document.getElementById("result-screen").style.display = "none";
     
-    // ステージレベルに応じて強化素材付与 (例: ステージ1クリアなら1個、ステージ3なら2個等)
     let materialEarned = 1 + Math.floor((currentStage - 1) / 2); 
     availableMaterials += materialEarned;
 
     currentStage++;
 
     if(currentStage === 2) {
-        // ステージ2の前だけ味方キャラの解説を入れる
         document.getElementById("ally-dialogue").style.display = "flex";
     } else {
         openUpgradeScreen();
@@ -174,17 +164,18 @@ document.getElementById("ally-text").onclick = () => {
     openUpgradeScreen();
 };
 
+// ▼ ここがバグ修正箇所：ゲーム画面の再表示を追加しました ▼
 document.getElementById("retryBtn").onclick = () => {
     currentStage = 1;
     playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
     availableMaterials = 0;
     document.getElementById("result-screen").style.display = "none";
+    document.getElementById("game-screen").style.display = "flex"; 
     currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
     buffAttacksLeft = 0;
     startStageSequence(); 
 };
 
-// ▼ 強化画面の処理 ▼
 function openUpgradeScreen() {
     document.getElementById("upgrade-screen").style.display = "flex";
     updateUpgradeUI();
@@ -226,7 +217,6 @@ document.getElementById("finish-upgrade-btn").onclick = () => {
     document.getElementById("upgrade-screen").style.display = "none";
     prepareStage();
 };
-
 
 async function initGame() {
     try {
@@ -299,7 +289,6 @@ function startStageSequence() {
     currentEnemyAtk = data.atk;
     currentEnemyInterval = data.interval;
     
-    // ステージ開始時はHPを全回復
     playerHP = playerStats.maxHp;
     attackHistory = [];
     updateHP();
@@ -396,7 +385,6 @@ function showDamageEffect(dmg, isCrit) {
     setTimeout(() => el.remove(), 800);
 }
 
-// ▼ ダメージ計算処理 (基礎攻撃力 + 部位攻撃力) * 会心補正 ▼
 function calcPartDamage(partBaseDamage) {
     let atk = playerStats.baseAtk + partBaseDamage;
     let isCrit = (Math.random() * 100) < playerStats.critRate;
