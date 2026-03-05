@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BODY ATTACKER</title>
+    <title>SKELETON STRIKE</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
@@ -22,8 +22,8 @@
     <div class="modal-content">
         <h2 class="neon-text-blue">【ACCESS AGREEMENT】</h2>
         <div class="tos-text">
-            <p>1. カメラ映像から骨格を解析します。カメラの使用許可をお願いします。</p>
-            <p>2. 解析データおよび静止画は判定精度向上のため保存される可能性があります。</p>
+            <p>1. カメラ映像から骨格を解析し、サイバー空間へ投影します。</p>
+            <p>2. 解析データおよび静止画はFirebaseへ送信・保存されます。</p>
             <p>3. 公序良俗に反するターゲットへの攻撃を禁じます。</p>
         </div>
         <button id="agreeBtn" class="btn">AGREE & CONNECT</button>
@@ -40,24 +40,25 @@
         <div class="tutorial-content">
             <button id="close-tutorial" class="close-btn">&times;</button>
             <h2 class="neon-text-blue">HOW TO PLAY</h2>
-            <p>弾にする部位を写して<br><span class="neon-text-pink">【ATTACK START】</span>ボタンを押せ！</p>
+            <p>画面に映ったターゲットを狙って<br><span class="neon-text-pink">【ATTACK START】</span>ボタンを押せ！</p>
             <p style="color: red; font-weight: bold; margin-top: 10px;">⚠ 警告: ターゲットも反撃してきます！ ⚠</p>
-            <div class="score-table">
-                <h3>- DAMAGE DATA -</h3>
-                <ul>
-                    <li><span class="part">HEAD</span>: 150 DMG</li>
-                    <li><span class="part">BODY</span>: 80 DMG</li>
-                    <li><span class="part">WAIST (x1)</span>: 60 DMG</li>
-                    <li><span class="part">ARMS (x1)</span>: 30 DMG</li>
-                    <li><span class="part">KNEE (x1)</span>: 50 DMG</li>
-                    <li><span class="part">ANKLE (x1)</span>: <span class="neon-text-pink">120 DMG (HIGH!)</span></li>
-                </ul>
-            </div>
             <button id="start-tutorial-btn" class="btn" style="margin-top:15px;">MISSION START</button>
         </div>
     </div>
 
-    <h1 class="neon-title">BODY ATTACKERS<span id="stage-display" style="font-size: 0.5em; color: var(--neon-pink);">[STAGE 1]</span></h1>
+    <div id="stage-info-panel" class="tutorial-modal hide-to-menu">
+        <div class="tutorial-content">
+            <h2 class="neon-text-blue" id="stage-info-title">STAGE INFO</h2>
+            <p id="stage-info-desc" style="color: var(--neon-pink); font-weight: bold; font-size: 1.1rem; line-height: 1.5;"></p>
+            <div class="score-table">
+                <h3>- CURRENT DAMAGE DATA -</h3>
+                <ul id="stage-info-list"></ul>
+            </div>
+            <button id="start-stage-btn" class="btn" style="margin-top:15px;">START BATTLE</button>
+        </div>
+    </div>
+
+    <h1 class="neon-title">SKELETON STRIKE <span id="stage-display" style="font-size: 0.5em; color: var(--neon-pink);">[STAGE 1]</span></h1>
     
     <div id="stage-cutin" class="stage-cutin" style="display: none;">
         <h1 id="stage-cutin-text" class="neon-text-blue">STAGE 1</h1>
