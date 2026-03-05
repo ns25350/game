@@ -67,9 +67,9 @@ const partImages = {
     "HEAD": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj1rjxRdqjv0ro97FAExrFQ4dAiGrLHX4vHkL0Zp7ExRTs56lqQzWt0T4TnfDIi1NKkQf51134toAPvJtmfcoPYnbHMNyE0W5_Hhg2Okr-vChDF9TP2P4NbzVHEAy07YmZTleG1M4lYcekw/s400/body_zugaikotsu_skull.png",
     "BODY": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgTeU_cNvLjGF98H_HiEHDMlB0_eB-tHtHYjJ9mGcErmndF2dPFUSlFf19N_BbUbdq9ds-d4ecEoMFAvTn-MUDrRiqykuUSfW4T3FbcyoXQfZQ052I6R5q2cMZV1zJhY5L0Vax1tiZlY_Y/s400/body_shinzou.png",
     "ARMS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBMex3yPXGQ_lT4ySIeZsPYYUXA5MCpjz45kdzzRARRMu7eYfIaLMHy6C8DYiGhm3i2tsD7iRhKqlQ76KkqqadZN1Ey05Suw4FQsp5MpuFRwxj3y1I6tyBW1OBvPWUlBzfbY629jkGSWU/s200/rubber_band_white.png",
-    "WAIST": "https://via.placeholder.com/100/ff00ff/ffffff?text=WAIST",
-    "KNEE":  "https://via.placeholder.com/100/00f3ff/ffffff?text=KNEE",
-    "ANKLE": "https://via.placeholder.com/100/39ff14/ffffff?text=ANKLE"
+    "WAIST": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBhvyH-tG8AtVzGLg-HCBRE63yzgVKFkMW2whVV_UiZLdfRMj1pt8BXYBWZ9qSFTpyaQzU6Pj9pHK34KiaqKsp_Px56WFGHqTayGQj1VsbtfM9Ih_6FXYiyL60j3p2XXYvgp5cc7Z607t_/s400/sick_gikkurigoshi_man2.png",
+    "KNEE":  "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgxPVZ7XkGHBbQ9LGdjOU6XDCEqf9L0RTKn54o25yTZWsllDVCy29lfb60F4OVq1CKSngf1jyjKGOCTtVIs0W_hCoytyubKkghjIgcNPXDth-THloV7qqUvGH6lJG-_u645vcvqqpDKgQtd/s400/body_hizamae_juuji_jintai.png",
+    "ANKLE": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRYoWa6FwxmvgM6ZZtPFXhX1L8t3547VkYjHoByFYw2Tm4qrpVCOer_RcsptOV7l9R3MWprbFunTwZM1rRGx9jWN70zWf5qwhJUvSkvn6rgLQ9fM3Gbv_Xf0qbBepoUn-rCLybkv6CQam/s400/body_foot_kakato.png"
 };
 
 const hankoImageSrc = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgrcGrCSf_es99vaom5Jximsz0CFDKXsG01zyseZNkEKrkEV43pZub4mzLHV1dpyiiHhOrkU2GtfUVuhn3mUGV0-2SO0_pzcrMeyJie77ydVg2CehkszRM5WFkdrrYmNLdCyw1Ov9Bj4il2/s400/hanko_kakuin.png";
