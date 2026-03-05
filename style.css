@@ -2,6 +2,7 @@
     --neon-green: #39ff14;
     --neon-blue: #00f3ff;
     --neon-pink: #ff00ff;
+    --neon-red: #ff3333;
     --bg-dark: #0a0a0b;
     --font-main: 'Share Tech Mono', monospace;
 }
@@ -58,13 +59,20 @@ body {
     align-items: center;
 }
 
+/* プレイヤー領域（HPとカメラを含む） */
+.video-container {
+    width: 95%; max-width: 600px;
+    display: flex; flex-direction: column; align-items: center;
+    margin: 15px auto;
+    position: relative;
+}
+
 /* カメラの枠 */
 .video-wrapper {
     position: relative;
     border: 2px solid var(--neon-blue); background: #000;
     line-height: 0; overflow: hidden;
-    width: 95%; max-width: 600px;
-    margin: 15px auto; border-radius: 8px;
+    width: 100%; border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
 }
 #video, #output_canvas { width: 100%; height: auto; display: block; }
@@ -83,11 +91,11 @@ body {
     display: flex; flex-direction: column; align-items: center;
 }
 
-/* ▼ PC用：ボスを「左のスペースの真ん中」に綺麗に配置 ▼ */
+/* ▼ PC用：ボスを「左のスペースの真ん中」に配置 ▼ */
 @media (min-width: 768px) {
     .game-area {
         flex-direction: row; 
-        justify-content: space-evenly; /* ★ 左右均等に配置 */
+        justify-content: space-evenly;
         align-items: center;
         padding: 0 20px;
     }
@@ -97,9 +105,9 @@ body {
         left: auto;
         transform: none;
         width: 320px; 
-        margin: 0; /* 中央に自動的に収まる */
+        margin: 0; 
     }
-    .video-wrapper {
+    .video-container {
         margin: 0; 
     }
 }
@@ -107,31 +115,38 @@ body {
 .enemy-visual { margin-bottom: 5px; width: 100%; }
 .enemy-glitch { font-size: 0.8rem; margin-top: 5px; color: #fff; background: rgba(0,0,0,0.6); padding: 4px; border-radius: 3px; font-weight:bold; }
 #boss-image { width: 100%; height: auto; filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.5)); transition: transform 0.1s; }
+
+/* ボス被弾時の揺れ */
 .boss-hit { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.5) hue-rotate(-50deg) drop-shadow(0 0 30px red) !important; }
+/* プレイヤー（カメラ）被弾時の揺れと赤いエフェクト */
+.player-hit { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: drop-shadow(0 0 30px var(--neon-red)) sepia(0.8) hue-rotate(-50deg) saturate(3) !important; border-color: var(--neon-red) !important; }
+
 @keyframes shake { 10%, 90% { transform: translate3d(-4px, 0, 0); } 20%, 80% { transform: translate3d(8px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-12px, 0, 0); } 40%, 60% { transform: translate3d(12px, 0, 0); } }
 
-/* HPバー */
-.hp-container { width: 100%; height: 18px; border: 1px solid #fff; background: rgba(255,255,255,0.1); position: relative; }
+/* 共通HPバー */
+.hp-container { width: 100%; height: 18px; border: 1px solid #fff; background: rgba(255,255,255,0.1); position: relative; margin-bottom: 5px; }
 .hp-bar-fill { width: 100%; height: 100%; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); transition: width 0.3s; }
 .hp-label { position: absolute; width: 100%; text-align: center; top: 0; line-height: 18px; font-size: 0.7rem; font-weight: bold; }
+
+/* プレイヤー専用HPバー（緑色） */
+.player-hp-container { border-color: var(--neon-green); margin-bottom: 10px; }
+.player-hp-fill { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
 
 .controls { margin-top: 20px; text-align: center; }
 #status { margin-top: 10px; font-size: 1rem; color: #ccc; }
 
-/* 飛んでくる弾 */
-.projectile { 
-    position: fixed; 
-    top: 0; left: 0; 
-    width: 100px; 
-    height: auto; 
-    z-index: 9999; 
-    pointer-events: none; 
-    filter: drop-shadow(0 0 10px var(--neon-green)); 
-}
+/* 自分からの弾 */
+.projectile { position: fixed; top: 0; left: 0; width: 100px; height: auto; z-index: 9999; pointer-events: none; filter: drop-shadow(0 0 10px var(--neon-green)); }
+/* 敵からの弾（ハンコ） */
+.enemy-projectile { position: fixed; top: 0; left: 0; width: 100px; height: auto; z-index: 9999; pointer-events: none; filter: drop-shadow(0 0 15px var(--neon-red)); }
 
-/* ダメージ文字 */
+/* 自分へのダメージ文字 */
 .dmg-popup { position: fixed; color: var(--neon-pink); font-size: 4rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-pink); animation: floatUpBoss 0.8s ease-out forwards; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); }
+/* 敵からのダメージ文字（赤） */
+.player-dmg-popup { position: fixed; color: var(--neon-red); font-size: 5rem; font-weight: bold; text-shadow: 0 0 20px var(--neon-red); animation: floatUpPlayer 0.8s ease-out forwards; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); }
+
 @keyframes floatUpBoss { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, -150px) scale(1.2); opacity: 0; } }
+@keyframes floatUpPlayer { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%, 150px) scale(1.2); opacity: 0; } } /* プレイヤーの被弾は文字が下に落ちる演出 */
 
 .result-container { width: 90%; max-width: 600px; text-align: center; }
 .result-list { background: rgba(0,0,0,0.6); border: 1px solid var(--neon-pink); padding: 15px; margin: 20px 0; max-height: 300px; overflow-y: auto; border-radius: 4px; }
