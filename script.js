@@ -63,10 +63,12 @@ document.getElementById("agreeBtn").onclick = () => {
     initGame();
 };
 
+// ▼▼▼ ここを修正（リトライ時のボタン復活） ▼▼▼
 document.getElementById("retryBtn").onclick = () => {
     enemyHP = 1000;
     attackHistory = [];
     updateHP();
+    shootBtn.disabled = false; // ★ ここを追加してボタンを押せるようにしました！
     document.getElementById("result-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex";
 };
@@ -112,7 +114,6 @@ function drawLoop() {
     requestAnimationFrame(drawLoop);
 }
 
-// === 右から左へ弾を飛ばすアニメーション ===
 function shootProjectile(imgSrc) {
     const proj = document.createElement("img");
     proj.src = imgSrc;
@@ -120,11 +121,9 @@ function shootProjectile(imgSrc) {
     document.body.appendChild(proj);
 
     const bossRect = bossImage.getBoundingClientRect();
-    // 弾が100pxになったので、中心を合わせるために -50px する
     const targetX = bossRect.left + bossRect.width / 2 - 50; 
     const targetY = bossRect.top + bossRect.height / 2 - 50; 
 
-    // 画面の右外からスタート
     const startX = window.innerWidth + 100; 
     const startY = targetY + (Math.random() * 80 - 40); 
 
