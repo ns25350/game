@@ -35,9 +35,9 @@ const partImages = {
     "HEAD": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj1rjxRdqjv0ro97FAExrFQ4dAiGrLHX4vHkL0Zp7ExRTs56lqQzWt0T4TnfDIi1NKkQf51134toAPvJtmfcoPYnbHMNyE0W5_Hhg2Okr-vChDF9TP2P4NbzVHEAy07YmZTleG1M4lYcekw/s400/body_zugaikotsu_skull.png",
     "BODY": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgTeU_cNvLjGF98H_HiEHDMlB0_eB-tHtHYjJ9mGcErmndF2dPFUSlFf19N_BbUbdq9ds-d4ecEoMFAvTn-MUDrRiqykuUSfW4T3FbcyoXQfZQ052I6R5q2cMZV1zJhY5L0Vax1tiZlY_Y/s400/body_shinzou.png",
     "ARMS": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBMex3yPXGQ_lT4ySIeZsPYYUXA5MCpjz45kdzzRARRMu7eYfIaLMHy6C8DYiGhm3i2tsD7iRhKqlQ76KkqqadZN1Ey05Suw4FQsp5MpuFRwxj3y1I6tyBW1OBvPWUlBzfbY629jkGSWU/s200/rubber_band_white.png",
-    "WAIST": "https://via.placeholder.com/100/ff00ff/ffffff?text=WAIST",
-    "KNEE":  "https://via.placeholder.com/100/00f3ff/ffffff?text=KNEE",
-    "ANKLE": "https://via.placeholder.com/100/39ff14/ffffff?text=ANKLE"
+    "WAIST": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhgwBFQDmK8i-4aU5INocRL6TEBfZ0qgYXUMFGs3BE5860y7tMj__HEu5I4yi-Uylxfg-Ve8kLITwn9fO3sCfhdjWgpymdbZBHUWDNwMoRLnie2gmeKqt9q3SSTW7DUWyyWv0Hnl-21qBBM/s400/koshi_magari_smile_objiisan.png",
+    "KNEE":  "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgxPVZ7XkGHBbQ9LGdjOU6XDCEqf9L0RTKn54o25yTZWsllDVCy29lfb60F4OVq1CKSngf1jyjKGOCTtVIs0W_hCoytyubKkghjIgcNPXDth-THloV7qqUvGH6lJG-_u645vcvqqpDKgQtd/s400/body_hizamae_juuji_jintai.png",
+    "ANKLE": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRYoWa6FwxmvgM6ZZtPFXhX1L8t3547VkYjHoByFYw2Tm4qrpVCOer_RcsptOV7l9R3MWprbFunTwZM1rRGx9jWN70zWf5qwhJUvSkvn6rgLQ9fM3Gbv_Xf0qbBepoUn-rCLybkv6CQam/s400/body_foot_kakato.png"
 };
 
 // ★ ボスの攻撃用のハンコ画像
