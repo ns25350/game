@@ -287,7 +287,7 @@ shootBtn.onclick = async () => {
     let damage = 0;
     let hitParts = [];
     let baseParts = []; 
-    const THRESHOLD = 0.2;
+    const THRESHOLD = 0.15;
 
     if (pose.nose.confidence > THRESHOLD) { damage += 150; hitParts.push("HEAD"); baseParts.push("HEAD"); }
     if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) { damage += 80; hitParts.push("BODY"); baseParts.push("BODY"); }
