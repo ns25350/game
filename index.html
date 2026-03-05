@@ -31,7 +31,6 @@
 </div>
 
 <div id="game-screen" class="screen game-layout" style="display: none;">
-    
     <div id="menu-btn" class="hamburger">
         <span></span><span></span><span></span>
     </div>
@@ -98,8 +97,56 @@
     <div class="result-container">
         <h2 id="result-title" class="neon-text-pink">MISSION COMPLETE</h2>
         <div id="result-list" class="result-list"></div>
-        <button id="nextBtn" class="btn" style="display: none;">NEXT STAGE</button>
+        <button id="nextBtn" class="btn" style="display: none;">PROCEED TO UPGRADE</button>
         <button id="retryBtn" class="btn" style="display: none;">RETRY (STAGE 1)</button>
+    </div>
+</div>
+
+<div id="ally-dialogue" class="ally-container" style="display: none;">
+    <div class="speech-bubble" id="ally-text">
+        よくやった！ここから敵がどんどん強くなる。<br>
+        手に入れた「強化素材」を使って、自分のステータスを上げるんだ！<br>
+        (クリックで次へ)
+    </div>
+    <img id="ally-image" src="https://via.placeholder.com/150/000000/00ffff?text=ALLY" alt="Ally">
+</div>
+
+<div id="upgrade-screen" class="screen" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <h2 class="neon-text-blue">SYSTEM UPGRADE</h2>
+        <p style="color: var(--neon-pink); font-size: 1.2rem;">REMAINING MATERIALS: <span id="upgrade-points">0</span></p>
+        
+        <div class="upgrade-list">
+            <div class="upgrade-item">
+                <div class="stat-info">
+                    <span class="stat-name">MAX HP</span>
+                    <span class="stat-val" id="stat-hp-val">1000</span> <span class="stat-up">▶ +1000</span>
+                </div>
+                <button class="btn upgrade-btn" data-stat="hp">UPGRADE</button>
+            </div>
+            <div class="upgrade-item">
+                <div class="stat-info">
+                    <span class="stat-name">BASE ATK</span>
+                    <span class="stat-val" id="stat-atk-val">10</span> <span class="stat-up">▶ +20</span>
+                </div>
+                <button class="btn upgrade-btn" data-stat="atk">UPGRADE</button>
+            </div>
+            <div class="upgrade-item">
+                <div class="stat-info">
+                    <span class="stat-name">CRIT RATE</span>
+                    <span class="stat-val" id="stat-crate-val">5%</span> <span class="stat-up">▶ +20%</span>
+                </div>
+                <button class="btn upgrade-btn" data-stat="crate">UPGRADE</button>
+            </div>
+            <div class="upgrade-item">
+                <div class="stat-info">
+                    <span class="stat-name">CRIT DMG</span>
+                    <span class="stat-val" id="stat-cdmg-val">50%</span> <span class="stat-up">▶ +40%</span>
+                </div>
+                <button class="btn upgrade-btn" data-stat="cdmg">UPGRADE</button>
+            </div>
+        </div>
+        <button id="finish-upgrade-btn" class="btn" style="margin-top: 20px;">NEXT BATTLE</button>
     </div>
 </div>
 
