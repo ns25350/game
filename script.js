@@ -31,6 +31,16 @@ const baseValues = [150, 80, 60, 30, 50, 120];
 let currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
 let buffAttacksLeft = 0; 
 
+// ▼ プレイヤーステータス管理 ▼
+let playerStats = {
+    maxHp: 1000,
+    baseAtk: 10,
+    critRate: 5,   // %
+    critDmg: 50    // %
+};
+let availableMaterials = 0;
+let playerHP = 1000;
+
 let poseNet;
 let poses = [];
 let attackHistory = [];
@@ -40,11 +50,9 @@ let isGameActive = false;
 let currentStage = 1;
 let currentMaxEnemyHP = 1000;
 let enemyHP = 1000;
-let playerHP = 1000;
 let currentEnemyAtk = 80;
 let currentEnemyInterval = 1000;
 
-// ▼ 判定のスコア基準を 0.18 に変更 ▼
 const THRESHOLD = 0.18;
 
 const video = document.getElementById("video");
@@ -93,7 +101,7 @@ function prepareStage() {
     const list = document.getElementById("stage-info-list");
     list.innerHTML = "";
     for(let key in currentDamages) {
-        list.innerHTML += `<li><span class="part">${key}</span>: ${currentDamages[key]} DMG</li>`;
+        list.innerHTML += `<li><span class="part">${key}</span>: ${currentDamages[key]} DMG (Base +${playerStats.baseAtk})</li>`;
     }
     
     let desc = "⚠️ 各部位の攻撃力がシャッフルされた！";
@@ -109,6 +117,10 @@ function prepareStage() {
 document.getElementById("start-tutorial-btn").onclick = () => {
     tutorialModal.classList.add("hide-to-menu");
     currentStage = 1;
+    // ステータス初期化
+    playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
+    availableMaterials = 0;
+    playerHP = playerStats.maxHp;
     currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
     buffAttacksLeft = 0;
     document.getElementById("game-screen").style.display = "flex";
@@ -139,19 +151,82 @@ document.getElementById("agreeBtn").onclick = () => {
     initGame();
 };
 
+// ▼ 次のステージへ行く前に「強化フェーズ」を挟む ▼
 document.getElementById("nextBtn").onclick = () => {
-    currentStage++;
     document.getElementById("result-screen").style.display = "none";
-    prepareStage(); 
+    
+    // ステージレベルに応じて強化素材付与 (例: ステージ1クリアなら1個、ステージ3なら2個等)
+    let materialEarned = 1 + Math.floor((currentStage - 1) / 2); 
+    availableMaterials += materialEarned;
+
+    currentStage++;
+
+    if(currentStage === 2) {
+        // ステージ2の前だけ味方キャラの解説を入れる
+        document.getElementById("ally-dialogue").style.display = "flex";
+    } else {
+        openUpgradeScreen();
+    }
+};
+
+document.getElementById("ally-text").onclick = () => {
+    document.getElementById("ally-dialogue").style.display = "none";
+    openUpgradeScreen();
 };
 
 document.getElementById("retryBtn").onclick = () => {
     currentStage = 1;
+    playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
+    availableMaterials = 0;
     document.getElementById("result-screen").style.display = "none";
     currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
     buffAttacksLeft = 0;
     startStageSequence(); 
 };
+
+// ▼ 強化画面の処理 ▼
+function openUpgradeScreen() {
+    document.getElementById("upgrade-screen").style.display = "flex";
+    updateUpgradeUI();
+}
+
+function updateUpgradeUI() {
+    document.getElementById("upgrade-points").innerText = availableMaterials;
+    document.getElementById("stat-hp-val").innerText = playerStats.maxHp;
+    document.getElementById("stat-atk-val").innerText = playerStats.baseAtk;
+    document.getElementById("stat-crate-val").innerText = playerStats.critRate + "%";
+    document.getElementById("stat-cdmg-val").innerText = playerStats.critDmg + "%";
+
+    const btns = document.querySelectorAll(".upgrade-btn");
+    btns.forEach(btn => {
+        btn.disabled = availableMaterials <= 0;
+    });
+}
+
+document.querySelectorAll(".upgrade-btn").forEach(btn => {
+    btn.onclick = (e) => {
+        if(availableMaterials <= 0) return;
+        availableMaterials--;
+        const stat = e.target.getAttribute("data-stat");
+        
+        if(stat === "hp") {
+            playerStats.maxHp += 1000;
+        } else if(stat === "atk") {
+            playerStats.baseAtk += 20;
+        } else if(stat === "crate") {
+            playerStats.critRate += 20;
+        } else if(stat === "cdmg") {
+            playerStats.critDmg += 40;
+        }
+        updateUpgradeUI();
+    };
+});
+
+document.getElementById("finish-upgrade-btn").onclick = () => {
+    document.getElementById("upgrade-screen").style.display = "none";
+    prepareStage();
+};
+
 
 async function initGame() {
     try {
@@ -181,7 +256,6 @@ function drawLoop() {
         const pose = poses[0].pose;
         const skeleton = poses[0].skeleton;
         pose.keypoints.forEach(kp => {
-            // ▼ ここも THRESHOLD に合わせて変更 ▼
             if (kp.score > THRESHOLD) {
                 ctx.fillStyle = "#39ff14"; ctx.beginPath(); ctx.arc(kp.position.x, kp.position.y, 5, 0, 2 * Math.PI); ctx.fill();
             }
@@ -225,7 +299,8 @@ function startStageSequence() {
     currentEnemyAtk = data.atk;
     currentEnemyInterval = data.interval;
     
-    playerHP = 1000;
+    // ステージ開始時はHPを全回復
+    playerHP = playerStats.maxHp;
     attackHistory = [];
     updateHP();
     
@@ -303,15 +378,30 @@ function takePlayerDamage(dmg) {
     }
 }
 
-function showDamageEffect(dmg) {
+function showDamageEffect(dmg, isCrit) {
     const rect = bossImage.getBoundingClientRect();
     const el = document.createElement("div");
-    el.className = "dmg-popup";
-    el.innerText = `-${dmg} DMG!!`;
+    
+    if(isCrit) {
+        el.className = "crit-popup";
+        el.innerText = `CRITICAL!\n-${dmg} DMG!!`;
+    } else {
+        el.className = "dmg-popup";
+        el.innerText = `-${dmg} DMG!!`;
+    }
+
     el.style.left = `${rect.left + rect.width / 2}px`;
     el.style.top = `${rect.top + rect.height / 2}px`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 800);
+}
+
+// ▼ ダメージ計算処理 (基礎攻撃力 + 部位攻撃力) * 会心補正 ▼
+function calcPartDamage(partBaseDamage) {
+    let atk = playerStats.baseAtk + partBaseDamage;
+    let isCrit = (Math.random() * 100) < playerStats.critRate;
+    let critMult = isCrit ? (1 + (playerStats.critDmg / 100)) : 1;
+    return { damage: Math.floor(atk * critMult), isCrit: isCrit };
 }
 
 shootBtn.onclick = async () => {
@@ -319,39 +409,75 @@ shootBtn.onclick = async () => {
     shootBtn.disabled = true;
     
     const pose = poses[0].pose;
-    let damage = 0;
+    let totalDamage = 0;
     let hitParts = [];
     let baseParts = []; 
+    let anyCrit = false;
 
     let headCount = 0;
     if (pose.nose.confidence > THRESHOLD) headCount++;
-    if (headCount > 0) { damage += currentDamages.HEAD; hitParts.push("HEAD"); baseParts.push("HEAD"); }
+    if (headCount > 0) { 
+        let calc = calcPartDamage(currentDamages.HEAD);
+        totalDamage += calc.damage; if(calc.isCrit) anyCrit = true;
+        hitParts.push("HEAD" + (calc.isCrit ? "★" : "")); 
+        baseParts.push("HEAD"); 
+    }
 
     let bodyCount = 0;
     if (pose.leftShoulder.confidence > THRESHOLD || pose.rightShoulder.confidence > THRESHOLD) bodyCount++;
-    if (bodyCount > 0) { damage += currentDamages.BODY; hitParts.push("BODY"); baseParts.push("BODY"); }
+    if (bodyCount > 0) { 
+        let calc = calcPartDamage(currentDamages.BODY);
+        totalDamage += calc.damage; if(calc.isCrit) anyCrit = true;
+        hitParts.push("BODY" + (calc.isCrit ? "★" : "")); 
+        baseParts.push("BODY"); 
+    }
 
     let armCount = 0;
     ['leftElbow', 'rightElbow', 'leftWrist', 'rightWrist'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) armCount++; });
-    if (armCount > 0) { damage += (armCount * currentDamages.ARMS); hitParts.push(`ARMS(x${armCount})`); baseParts.push("ARMS"); }
+    if (armCount > 0) { 
+        let calc = calcPartDamage(currentDamages.ARMS);
+        totalDamage += (calc.damage * armCount); if(calc.isCrit) anyCrit = true;
+        hitParts.push(`ARMS(x${armCount})` + (calc.isCrit ? "★" : "")); 
+        baseParts.push("ARMS"); 
+    }
 
     let waistCount = 0;
     ['leftHip', 'rightHip'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) waistCount++; });
-    if (waistCount > 0) { damage += (waistCount * currentDamages.WAIST); hitParts.push(`WAIST(x${waistCount})`); baseParts.push("WAIST"); }
+    if (waistCount > 0) { 
+        let calc = calcPartDamage(currentDamages.WAIST);
+        totalDamage += (calc.damage * waistCount); if(calc.isCrit) anyCrit = true;
+        hitParts.push(`WAIST(x${waistCount})` + (calc.isCrit ? "★" : "")); 
+        baseParts.push("WAIST"); 
+    }
 
     let kneeCount = 0;
     ['leftKnee', 'rightKnee'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) kneeCount++; });
-    if (kneeCount > 0) { damage += (kneeCount * currentDamages.KNEE); hitParts.push(`KNEE(x${kneeCount})`); baseParts.push("KNEE"); }
+    if (kneeCount > 0) { 
+        let calc = calcPartDamage(currentDamages.KNEE);
+        totalDamage += (calc.damage * kneeCount); if(calc.isCrit) anyCrit = true;
+        hitParts.push(`KNEE(x${kneeCount})` + (calc.isCrit ? "★" : "")); 
+        baseParts.push("KNEE"); 
+    }
 
     let ankleCount = 0;
     ['leftAnkle', 'rightAnkle'].forEach(p => { if (pose[p] && pose[p].confidence > THRESHOLD) ankleCount++; });
-    if (ankleCount > 0) { damage += (ankleCount * currentDamages.ANKLE); hitParts.push(`ANKLE(x${ankleCount})`); baseParts.push("ANKLE"); }
+    if (ankleCount > 0) { 
+        let calc = calcPartDamage(currentDamages.ANKLE);
+        totalDamage += (calc.damage * ankleCount); if(calc.isCrit) anyCrit = true;
+        hitParts.push(`ANKLE(x${ankleCount})` + (calc.isCrit ? "★" : "")); 
+        baseParts.push("ANKLE"); 
+    }
 
-    if (damage === 0) { damage = 10; hitParts.push("GRAZE"); baseParts.push("ARMS"); } 
+    if (totalDamage === 0) { 
+        let calc = calcPartDamage(0); 
+        totalDamage = calc.damage; if(calc.isCrit) anyCrit = true;
+        hitParts.push("GRAZE" + (calc.isCrit ? "★" : "")); 
+        baseParts.push("ARMS"); 
+    } 
 
     let isBuffedAttack = false;
     if (buffAttacksLeft > 0) {
-        damage *= 2;
+        totalDamage *= 2;
         buffAttacksLeft--;
         isBuffedAttack = true;
     }
@@ -363,11 +489,11 @@ shootBtn.onclick = async () => {
     }
 
     let logText = hitParts.join(" + ");
-    if (isBuffedAttack) logText = "★CRITICAL★ " + logText;
-    attackHistory.push({ damage: damage, parts: logText });
+    if (isBuffedAttack) logText = "[KNEE BUFFx2] " + logText;
+    attackHistory.push({ damage: totalDamage, parts: logText });
 
     if (isBuffedAttack) {
-        const el = document.createElement("div"); el.className = "buff-popup"; el.innerText = "CRITICAL x2 !!";
+        const el = document.createElement("div"); el.className = "buff-popup"; el.innerText = "KNEE BUFF x2 !!";
         document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
     } else if (buffTriggered) {
         const el2 = document.createElement("div"); el2.className = "buff-popup"; el2.innerText = "KNEE BUFF +2 ATKS!";
@@ -386,8 +512,8 @@ shootBtn.onclick = async () => {
         bossImage.classList.add("boss-hit");
         setTimeout(() => bossImage.classList.remove("boss-hit"), 300);
 
-        showDamageEffect(damage);
-        enemyHP = Math.max(0, enemyHP - damage);
+        showDamageEffect(totalDamage, anyCrit);
+        enemyHP = Math.max(0, enemyHP - totalDamage);
         updateHP();
 
         if (enemyHP <= 0) {
@@ -402,16 +528,17 @@ shootBtn.onclick = async () => {
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth; saveCanvas.height = video.videoHeight;
     saveCanvas.getContext("2d").drawImage(video, 0, 0);
-    try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.8), totalDamage: damage, parts: logText }); } catch (e) {}
+    try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.8), totalDamage: totalDamage, parts: logText }); } catch (e) {}
 };
 
 function updateHP() {
     hpValue.innerText = enemyHP;
     hpBar.style.width = ((enemyHP / currentMaxEnemyHP) * 100) + "%"; 
-    playerHpValue.innerText = playerHP;
-    playerHpBar.style.width = (playerHP / 10) + "%";
     
-    if(playerHP <= 300) {
+    playerHpValue.innerText = playerHP + " / " + playerStats.maxHp;
+    playerHpBar.style.width = ((playerHP / playerStats.maxHp) * 100) + "%";
+    
+    if(playerHP <= playerStats.maxHp * 0.3) {
         playerHpBar.style.background = "var(--neon-red)";
         playerHpBar.style.boxShadow = "0 0 10px var(--neon-red)";
     } else {
