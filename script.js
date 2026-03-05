@@ -18,7 +18,7 @@ const STAGE_DATA = [
     { hp: 1000, atk: 80, interval: 1000 },
     { hp: 1500, atk: 100, interval: 900 },
     { hp: 2500, atk: 120, interval: 800 },
-    { hp: 10000, atk: 200, interval: 500 },  // ステージ4から地獄
+    { hp: 10000, atk: 200, interval: 500 },
     { hp: 15000, atk: 300, interval: 400 },
     { hp: 25000, atk: 400, interval: 350 },
     { hp: 40000, atk: 500, interval: 300 },
@@ -27,10 +27,9 @@ const STAGE_DATA = [
     { hp: 100000, atk: 1000, interval: 150 }
 ];
 
-// ▼ ダメージ設定とバフ変数 ▼
 const baseValues = [150, 80, 60, 30, 50, 120];
 let currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
-let buffAttacksLeft = 0; // KNEEバフの残り回数
+let buffAttacksLeft = 0; 
 
 let poseNet;
 let poses = [];
@@ -44,6 +43,9 @@ let enemyHP = 1000;
 let playerHP = 1000;
 let currentEnemyAtk = 80;
 let currentEnemyInterval = 1000;
+
+// ▼ 判定のスコア基準を 0.18 に変更 ▼
+const THRESHOLD = 0.18;
 
 const video = document.getElementById("video");
 const shootBtn = document.getElementById("shootBtn");
@@ -71,7 +73,6 @@ const tutorialModal = document.getElementById("tutorial-panel");
 document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
 document.getElementById("menu-btn").onclick = () => tutorialModal.classList.remove("hide-to-menu");
 
-// ★ ダメージをシャッフルする関数
 function shuffleDamages() {
     let values = [...baseValues];
     for (let i = values.length - 1; i > 0; i--) {
@@ -84,10 +85,9 @@ function shuffleDamages() {
     });
 }
 
-// ★ ステージ準備（ブリーフィングの表示）
 function prepareStage() {
     shuffleDamages();
-    buffAttacksLeft = 0; // バフをリセット
+    buffAttacksLeft = 0; 
     
     document.getElementById("stage-info-title").innerText = `STAGE ${currentStage} BRIEFING`;
     const list = document.getElementById("stage-info-list");
@@ -97,7 +97,6 @@ function prepareStage() {
     }
     
     let desc = "⚠️ 各部位の攻撃力がシャッフルされた！";
-    // ステージ3〜6の場合はKNEEバフの説明を追加
     if (currentStage >= 3 && currentStage <= 6) {
         desc += "<br><br><span style='color:#ffeb3b; text-shadow: 0 0 10px #ffeb3b;'>【特殊ルール発動】<br>KNEE（膝）をスキャンすると、次の2回の攻撃ダメージが2倍になるぞ！！</span>";
     }
@@ -107,7 +106,6 @@ function prepareStage() {
     document.getElementById("stage-info-panel").classList.remove("hide-to-menu");
 }
 
-// チュートリアル後の開始（ステージ1はシャッフルなし）
 document.getElementById("start-tutorial-btn").onclick = () => {
     tutorialModal.classList.add("hide-to-menu");
     currentStage = 1;
@@ -117,7 +115,6 @@ document.getElementById("start-tutorial-btn").onclick = () => {
     startStageSequence();
 };
 
-// ブリーフィング画面からの開始
 document.getElementById("start-stage-btn").onclick = () => {
     document.getElementById("stage-info-panel").classList.add("hide-to-menu");
     startStageSequence();
@@ -145,7 +142,7 @@ document.getElementById("agreeBtn").onclick = () => {
 document.getElementById("nextBtn").onclick = () => {
     currentStage++;
     document.getElementById("result-screen").style.display = "none";
-    prepareStage(); // ステージ2以降は準備画面へ
+    prepareStage(); 
 };
 
 document.getElementById("retryBtn").onclick = () => {
@@ -153,7 +150,7 @@ document.getElementById("retryBtn").onclick = () => {
     document.getElementById("result-screen").style.display = "none";
     currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
     buffAttacksLeft = 0;
-    startStageSequence(); // ステージ1は即開始
+    startStageSequence(); 
 };
 
 async function initGame() {
@@ -184,7 +181,8 @@ function drawLoop() {
         const pose = poses[0].pose;
         const skeleton = poses[0].skeleton;
         pose.keypoints.forEach(kp => {
-            if (kp.score > 0.2) {
+            // ▼ ここも THRESHOLD に合わせて変更 ▼
+            if (kp.score > THRESHOLD) {
                 ctx.fillStyle = "#39ff14"; ctx.beginPath(); ctx.arc(kp.position.x, kp.position.y, 5, 0, 2 * Math.PI); ctx.fill();
             }
         });
@@ -316,7 +314,6 @@ function showDamageEffect(dmg) {
     setTimeout(() => el.remove(), 800);
 }
 
-// === 攻撃ボタン処理（バフ計算を組み込み！） ===
 shootBtn.onclick = async () => {
     if (poses.length === 0 || !isGameActive) return;
     shootBtn.disabled = true;
@@ -325,9 +322,7 @@ shootBtn.onclick = async () => {
     let damage = 0;
     let hitParts = [];
     let baseParts = []; 
-    const THRESHOLD = 0.2;
 
-    // シャッフルされた currentDamages を使って計算
     let headCount = 0;
     if (pose.nose.confidence > THRESHOLD) headCount++;
     if (headCount > 0) { damage += currentDamages.HEAD; hitParts.push("HEAD"); baseParts.push("HEAD"); }
@@ -354,7 +349,6 @@ shootBtn.onclick = async () => {
 
     if (damage === 0) { damage = 10; hitParts.push("GRAZE"); baseParts.push("ARMS"); } 
 
-    // ★ バフの適用（前回の攻撃でKNEEを認識していればダメージ2倍）
     let isBuffedAttack = false;
     if (buffAttacksLeft > 0) {
         damage *= 2;
@@ -362,10 +356,9 @@ shootBtn.onclick = async () => {
         isBuffedAttack = true;
     }
 
-    // ★ 今回KNEEを認識したら、次の2回の攻撃をバフ状態にする（ステージ3〜6のみ）
     let buffTriggered = false;
     if (currentStage >= 3 && currentStage <= 6 && kneeCount > 0) {
-        buffAttacksLeft = 2; // バフを2回分チャージ！
+        buffAttacksLeft = 2; 
         buffTriggered = true;
     }
 
@@ -373,7 +366,6 @@ shootBtn.onclick = async () => {
     if (isBuffedAttack) logText = "★CRITICAL★ " + logText;
     attackHistory.push({ damage: damage, parts: logText });
 
-    // バフ発動時の黄色いポップアップ演出
     if (isBuffedAttack) {
         const el = document.createElement("div"); el.className = "buff-popup"; el.innerText = "CRITICAL x2 !!";
         document.body.appendChild(el); setTimeout(() => el.remove(), 1000);
@@ -410,7 +402,6 @@ shootBtn.onclick = async () => {
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth; saveCanvas.height = video.videoHeight;
     saveCanvas.getContext("2d").drawImage(video, 0, 0);
-    // ★画像劣化を防ぐため、画質を 0.8 に引き上げました！
     try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.8), totalDamage: damage, parts: logText }); } catch (e) {}
 };
 
