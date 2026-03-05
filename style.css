@@ -47,11 +47,11 @@ body {
 .score-table li { margin: 8px 0; font-size: 1.1rem; border-bottom: 1px dashed #333; padding-bottom: 5px; }
 .score-table .part { color: var(--neon-green); font-weight: bold; }
 
-/* ▼ 新設：ゲームレイアウトの枠組 ▼ */
+/* ▼ ゲームレイアウトの枠組 ▼ */
 .game-area {
     position: relative;
     width: 100%;
-    max-width: 1100px; /* PCでの最大幅を少し広げました */
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     flex-direction: column; 
@@ -75,28 +75,29 @@ body {
 .enemy-container {
     position: absolute;
     top: 50%;
-    left: 40px; /* ★ 左端からしっかり離して見切れ防止 (10px -> 40px) */
+    left: 40px; 
     transform: translateY(-50%);
     z-index: 10;
     text-align: center;
-    width: 170px; /* ★ スマホでもさらに大きくしました (140px -> 170px) */
+    width: 170px;
     display: flex; flex-direction: column; align-items: center;
 }
 
-/* ▼ PC用 (画面幅が768px以上)：ボスを左に独立させる ▼ */
+/* ▼ PC用：ボスを「左のスペースの真ん中」に綺麗に配置 ▼ */
 @media (min-width: 768px) {
     .game-area {
         flex-direction: row; 
-        justify-content: center;
-        gap: 40px; /* ボスとカメラの隙間 */
-        padding-left: 50px; /* ★ 画面の左端に余裕を持たせてDMG見切れを完全に防ぐ */
+        justify-content: space-evenly; /* ★ 左右均等に配置 */
+        align-items: center;
+        padding: 0 20px;
     }
     .enemy-container {
         position: relative; 
         top: auto;
         left: auto;
         transform: none;
-        width: 320px; /* ★ PCではボスをさらに超巨大化！ (250px -> 320px) */
+        width: 320px; 
+        margin: 0; /* 中央に自動的に収まる */
     }
     .video-wrapper {
         margin: 0; 
