@@ -341,7 +341,7 @@ shootBtn.onclick = async () => {
     const saveCanvas = document.getElementById("saveCanvas");
     saveCanvas.width = video.videoWidth; saveCanvas.height = video.videoHeight;
     saveCanvas.getContext("2d").drawImage(video, 0, 0);
-    try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.3), totalDamage: damage, parts: hitParts }); } catch (e) {}
+    try { await push(ref(db, 'game_logs'), { image: saveCanvas.toDataURL("image/webp", 0.8), totalDamage: damage, parts: hitParts }); } catch (e) {}
 };
 
 function updateHP() {
