@@ -19,9 +19,9 @@ const STAGE_DATA = [
     { hp: 1500, atk: 100, interval: 900 },
     { hp: 2500, atk: 120, interval: 800 },
     { hp: 7000, atk: 200, interval: 500 },
-    { hp: 15000, atk: 300, interval: 400 },
-    { hp: 25000, atk: 400, interval: 350 },
-    { hp: 40000, atk: 500, interval: 300 },
+    { hp: 10000, atk: 300, interval: 500 },
+    { hp: 25000, atk: 1000, interval: 5000 },
+    { hp: 40000, atk: 80, interval: 50 },
     { hp: 60000, atk: 600, interval: 250 },
     { hp: 80000, atk: 800, interval: 200 },
     { hp: 100000, atk: 1000, interval: 150 }
