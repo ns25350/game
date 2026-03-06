@@ -18,7 +18,7 @@ const STAGE_DATA = [
     { hp: 1000, atk: 80, interval: 1000 },
     { hp: 1500, atk: 100, interval: 900 },
     { hp: 2500, atk: 120, interval: 800 },
-    { hp: 10000, atk: 200, interval: 500 },
+    { hp: 7000, atk: 200, interval: 500 },
     { hp: 15000, atk: 300, interval: 400 },
     { hp: 25000, atk: 400, interval: 350 },
     { hp: 40000, atk: 500, interval: 300 },
@@ -147,7 +147,8 @@ document.getElementById("agreeBtn").onclick = () => {
 document.getElementById("nextBtn").onclick = () => {
     document.getElementById("result-screen").style.display = "none";
     
-    let materialEarned = 1 + Math.floor((currentStage - 1) / 2); 
+    // ▼ ここを変更：クリアしたステージ数（currentStage）がそのままもらえる個数になります ▼
+    let materialEarned = currentStage; 
     availableMaterials += materialEarned;
 
     currentStage++;
