@@ -30,12 +30,31 @@
     </div>
 </div>
 
+<div id="char-select-screen" class="screen" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <h2 class="neon-text-pink">WHO ARE YOU?</h2>
+        <p>あなたのキャラクターを選択してください</p>
+        <div class="char-select-container">
+            <div class="char-card" id="char1-btn">
+                <img src="https://via.placeholder.com/200/ff0000/ffffff?text=PLAYER+A" alt="Player A">
+                <h3 class="neon-text-blue">熱血エージェント</h3>
+                <p>体力が高く、ガンガン攻めるタイプ</p>
+            </div>
+            <div class="char-card" id="char2-btn">
+                <img src="https://via.placeholder.com/200/0000ff/ffffff?text=PLAYER+B" alt="Player B">
+                <h3 class="neon-text-blue">冷静なサイボーグ</h3>
+                <p>クリティカル率が高い精密タイプ</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="game-screen" class="screen game-layout" style="display: none;">
     <div id="menu-btn" class="hamburger">
         <span></span><span></span><span></span>
     </div>
 
-    <div id="tutorial-panel" class="tutorial-modal">
+    <div id="tutorial-panel" class="tutorial-modal hide-to-menu">
         <div class="tutorial-content">
             <button id="close-tutorial" class="close-btn">&times;</button>
             <h2 class="neon-text-blue">HOW TO PLAY</h2>
@@ -65,7 +84,7 @@
 
     <div class="game-area">
         <div class="enemy-container">
-            <div class="enemy-visual">
+            <div class="enemy-visual" id="boss-visual-area">
                 <img id="boss-image" src="" alt="BOSS">
                 <div class="enemy-glitch">TARGET: BOSS</div>
             </div>
@@ -108,15 +127,17 @@
         手に入れた「強化素材」を使って、自分のステータスを上げるんだ！<br>
         (クリックで次へ)
     </div>
-    <img id="ally-image" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgNvpds-3q1I5Hb1-Mu-GCVzJTZYNnaw7BY5aiD0JTitFUk0g5DWKxPBpC7O6SYsqEW3MPtdWi4TJ5sTIQ_U8ZBXOf8F_G3TMxpviU7biVabcm6-5jxh7p0IzbCXso853ovCUQ11eWthnN7/s450/job_doctor_woman.png" alt="Ally">
+    <img id="ally-image" src="" alt="Ally">
 </div>
 
 <div id="enemy-dialogue" class="enemy-dialogue-container" style="display: none;">
     <img id="enemy-dialogue-image" src="" alt="Enemy">
-    <div class="speech-bubble enemy-bubble">
+    <div class="speech-bubble enemy-bubble" id="enemy-bubble-area">
         <strong id="enemy-name" class="neon-text-red"></strong><br>
-        <span id="enemy-quote"></span><br>
-        <button id="start-fight-btn" class="btn" style="margin-top: 10px;">BATTLE START</button>
+        <span id="enemy-quote"></span>
+        <span class="blinking-cursor">▼</span>
+        <br>
+        <button id="start-fight-btn" class="btn" style="display: none; margin-top: 10px;">BATTLE START</button>
     </div>
 </div>
 
@@ -126,41 +147,16 @@
         <p style="color: var(--neon-pink); font-size: 1.2rem;">REMAINING MATERIALS: <span id="upgrade-points">0</span></p>
         
         <div class="upgrade-list">
-            <div class="upgrade-item">
-                <div class="stat-info">
-                    <span class="stat-name">MAX HP</span>
-                    <span class="stat-val" id="stat-hp-val">1000</span> <span class="stat-up">▶ +1000</span>
-                </div>
-                <button class="btn upgrade-btn" data-stat="hp">UPGRADE</button>
-            </div>
-            <div class="upgrade-item">
-                <div class="stat-info">
-                    <span class="stat-name">BASE ATK</span>
-                    <span class="stat-val" id="stat-atk-val">10</span> <span class="stat-up">▶ +20</span>
-                </div>
-                <button class="btn upgrade-btn" data-stat="atk">UPGRADE</button>
-            </div>
-            <div class="upgrade-item">
-                <div class="stat-info">
-                    <span class="stat-name">CRIT RATE</span>
-                    <span class="stat-val" id="stat-crate-val">5%</span> <span class="stat-up">▶ +20%</span>
-                </div>
-                <button class="btn upgrade-btn" data-stat="crate">UPGRADE</button>
-            </div>
-            <div class="upgrade-item">
-                <div class="stat-info">
-                    <span class="stat-name">CRIT DMG</span>
-                    <span class="stat-val" id="stat-cdmg-val">50%</span> <span class="stat-up">▶ +40%</span>
-                </div>
-                <button class="btn upgrade-btn" data-stat="cdmg">UPGRADE</button>
-            </div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">MAX HP</span><span class="stat-val" id="stat-hp-val">1000</span> <span class="stat-up">▶ +1000</span></div><button class="btn upgrade-btn" data-stat="hp">UPGRADE</button></div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">BASE ATK</span><span class="stat-val" id="stat-atk-val">10</span> <span class="stat-up">▶ +20</span></div><button class="btn upgrade-btn" data-stat="atk">UPGRADE</button></div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">CRIT RATE</span><span class="stat-val" id="stat-crate-val">5%</span> <span class="stat-up">▶ +20%</span></div><button class="btn upgrade-btn" data-stat="crate">UPGRADE</button></div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">CRIT DMG</span><span class="stat-val" id="stat-cdmg-val">50%</span> <span class="stat-up">▶ +40%</span></div><button class="btn upgrade-btn" data-stat="cdmg">UPGRADE</button></div>
         </div>
         <button id="finish-upgrade-btn" class="btn" style="margin-top: 20px;">NEXT BATTLE</button>
     </div>
 </div>
 
 <canvas id="saveCanvas" style="display:none;"></canvas>
-
 <script type="module" src="script.js"></script>
 </body>
 </html>
