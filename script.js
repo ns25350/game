@@ -14,23 +14,22 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 画像URLの定義
 const BOSS_IMG_DEFAULT = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEieoNzaobsebcl38IfzsTJVw6rWsyjs3znCTUM1FvmEBOk-AEMbK7fpQNgIxKlAYs9975b504ugIaTUpusOaaBkZzujeTCjjmyeb4SavcUGNQdmLI-IgOAWIsAhmRCOJejPk7dOSFoOv7m_/s400/gomasuri_businessman.png";
 const HANKO_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgrcGrCSf_es99vaom5Jximsz0CFDKXsG01zyseZNkEKrkEV43pZub4mzLHV1dpyiiHhOrkU2GtfUVuhn3mUGV0-2SO0_pzcrMeyJie77ydVg2CehkszRM5WFkdrrYmNLdCyw1Ov9Bj4il2/s400/hanko_kakuin.png";
 const DOCTOR_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgNvpds-3q1I5Hb1-Mu-GCVzJTZYNnaw7BY5aiD0JTitFUk0g5DWKxPBpC7O6SYsqEW3MPtdWi4TJ5sTIQ_U8ZBXOf8F_G3TMxpviU7biVabcm6-5jxh7p0IzbCXso853ovCUQ11eWthnN7/s450/job_doctor_woman.png";
 
-// ▼ 新しいステージ＆敵データ ▼
+// ▼ セリフを配列（細切れ）に変更しました ▼
 const STAGE_DATA = [
-    { hp: 1000, atk: 80, interval: 1000, name: "部長", quote: "おっお前か、今日も元気そうだなぁ。頑張れよ?", bossImg: BOSS_IMG_DEFAULT, projImg: HANKO_IMG },
-    { hp: 1500, atk: 120, interval: 1000, name: "若い男", quote: "言っとくけど、僕は部長より強いよ？フッwやろうか", bossImg: "https://via.placeholder.com/150/555555/ffffff?text=YOUNG+MAN", projImg: "https://via.placeholder.com/100/aaaaaa/000000?text=KNIFE" },
-    { hp: 2500, atk: 200, interval: 1000, name: "ケンタ", quote: "俺の尊敬するミニマリストが、お前はいらないって。", bossImg: "https://via.placeholder.com/150/0000ff/ffffff?text=KENTA", projImg: "https://via.placeholder.com/100/0000ff/ffffff?text=TABLET" },
-    { hp: 7000, atk: 800, interval: 1500, name: "ミツル", quote: "やめとくんだな。なんだって？お前らの事大好きやからいうとんねんぞ。", bossImg: "https://via.placeholder.com/150/ff8800/ffffff?text=MITSURU", projImg: HANKO_IMG },
-    { hp: 15000, atk: 100, interval: 500, name: "闇女", quote: "フフフ…切り刻んであげる…", bossImg: "https://via.placeholder.com/150/800080/ffffff?text=DARK+WOMAN", projImg: "https://via.placeholder.com/100/800080/ffffff?text=CLEAVER" },
-    { hp: 25000, atk: 100, interval: 1000, name: "味方だった女医", quote: "ごめんね、ここまで強いとは。でもここから先は神の領域よ。活かせるわけにはいかないのよ。", bossImg: DOCTOR_IMG, projImg: "https://via.placeholder.com/100/00ff00/000000?text=POISON" },
-    { hp: 40000, atk: 5000, interval: 1500, name: "インターネットの神様", quote: "フォッフォ", bossImg: "https://via.placeholder.com/150/00ffff/000000?text=WIFI+GOD", projImg: "https://via.placeholder.com/100/00ffff/000000?text=WIFI" },
-    { hp: 60000, atk: 1500, interval: 1000, name: "ゼウス", quote: ".....来たか..", bossImg: "https://via.placeholder.com/150/ffff00/000000?text=ZEUS", projImg: "https://via.placeholder.com/100/ffff00/000000?text=THUNDER" },
-    { hp: 80000, atk: 999999, interval: 15000, name: "寝不足な医者", quote: "あぁ...", bossImg: "https://via.placeholder.com/150/005500/ffffff?text=TIRED+DOCTOR", projImg: "https://via.placeholder.com/100/005500/ffffff?text=UNKNOWN" },
-    { hp: 100000, atk: 20000, interval: 1500, name: "開発者", quote: "君の今までのデータを見る限り膝が弱いね。オスグッドかなぁ？", bossImg: "https://via.placeholder.com/150/ffffff/000000?text=DEVELOPER", projImg: "https://via.placeholder.com/100/ffffff/000000?text=BIG+DATA" }
+    { hp: 1000, atk: 80, interval: 1000, name: "上司", quote: ["おい、君。", "今日中にこの書類、", "全部ハンコ押しといて！"], bossImg: BOSS_IMG_DEFAULT, projImg: HANKO_IMG },
+    { hp: 1500, atk: 120, interval: 1000, name: "若い男", quote: ["チッ…", "俺のナイフを避けられるかな？"], bossImg: "https://via.placeholder.com/150/555555/ffffff?text=YOUNG+MAN", projImg: "https://via.placeholder.com/100/aaaaaa/000000?text=KNIFE" },
+    { hp: 2500, atk: 200, interval: 1000, name: "ケンタ", quote: ["へへっ、", "最新のタブレットの角は痛いぞ！"], bossImg: "https://via.placeholder.com/150/0000ff/ffffff?text=KENTA", projImg: "https://via.placeholder.com/100/0000ff/ffffff?text=TABLET" },
+    { hp: 7000, atk: 800, interval: 1500, name: "ミツル", quote: ["俺の特大ハンコ…", "その身に刻んでやる！"], bossImg: "https://via.placeholder.com/150/ff8800/ffffff?text=MITSURU", projImg: HANKO_IMG },
+    { hp: 15000, atk: 100, interval: 500, name: "闇女", quote: ["フフフ…", "切り刻んであげる…", "原型がなくなるまでね。"], bossImg: "https://via.placeholder.com/150/800080/ffffff?text=DARK+WOMAN", projImg: "https://via.placeholder.com/100/800080/ffffff?text=CLEAVER" },
+    { hp: 25000, atk: 100, interval: 1000, name: "味方だった女医", quote: ["あら、ご苦労さま。", "強化手術の時間は終わりよ。", "次は…解剖の時間ね。"], bossImg: DOCTOR_IMG, projImg: "https://via.placeholder.com/100/00ff00/000000?text=POISON" },
+    { hp: 40000, atk: 5000, interval: 1500, name: "インターネットの神様", quote: ["我はネットを統べる者…", "通信制限の恐怖を味わうが良い！"], bossImg: "https://via.placeholder.com/150/00ffff/000000?text=WIFI+GOD", projImg: "https://via.placeholder.com/100/00ffff/000000?text=WIFI" },
+    { hp: 60000, atk: 1500, interval: 1000, name: "ゼウス", quote: ["人間風情が…！", "神の雷、とくと味わえ！！"], bossImg: "https://via.placeholder.com/150/ffff00/000000?text=ZEUS", projImg: "https://via.placeholder.com/100/ffff00/000000?text=THUNDER" },
+    { hp: 80000, atk: 999999, interval: 15000, name: "寝不足な医者", quote: ["あぁ…もう限界だ…", "頼む、15秒で終わらせてくれ…", "じゃないと…"], bossImg: "https://via.placeholder.com/150/005500/ffffff?text=TIRED+DOCTOR", projImg: "https://via.placeholder.com/100/005500/ffffff?text=UNKNOWN" },
+    { hp: 100000, atk: 20000, interval: 1500, name: "開発者", quote: ["よくここまで来たな。", "だが、このゲームのバグごと…", "お前を消し去ってやろう。"], bossImg: "https://via.placeholder.com/150/ffffff/000000?text=DEVELOPER", projImg: "https://via.placeholder.com/100/ffffff/000000?text=BIG+DATA" }
 ];
 
 const baseValues = [150, 80, 60, 30, 50, 120];
@@ -40,6 +39,7 @@ let buffAttacksLeft = 0;
 let playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
 let availableMaterials = 0;
 let playerHP = 1000;
+let selectedPlayerImage = ""; // 選択した自キャラの画像
 
 let poseNet;
 let poses = [];
@@ -54,8 +54,14 @@ let currentEnemyAtk = 80;
 let currentEnemyInterval = 1000;
 let currentProjImg = HANKO_IMG;
 
-const THRESHOLD = 0.18;
+// セリフ用変数
+let dialogueLines = [];
+let currentLineIndex = 0;
+let isTyping = false;
+let typeInterval;
+let currentTextStr = "";
 
+const THRESHOLD = 0.18;
 const video = document.getElementById("video");
 const shootBtn = document.getElementById("shootBtn");
 const hpBar = document.getElementById("hpBar");
@@ -74,11 +80,6 @@ const partImages = {
 };
 
 Object.values(partImages).forEach(src => { const img = new Image(); img.src = src; });
-const hankoImg = new Image(); hankoImg.src = HANKO_IMG;
-
-const tutorialModal = document.getElementById("tutorial-panel");
-document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
-document.getElementById("menu-btn").onclick = () => tutorialModal.classList.remove("hide-to-menu");
 
 function shuffleDamages() {
     let values = [...baseValues];
@@ -87,9 +88,7 @@ function shuffleDamages() {
         [values[i], values[j]] = [values[j], values[i]];
     }
     const keys = ["HEAD", "BODY", "WAIST", "ARMS", "KNEE", "ANKLE"];
-    keys.forEach((key, index) => {
-        currentDamages[key] = values[index];
-    });
+    keys.forEach((key, index) => { currentDamages[key] = values[index]; });
 }
 
 function prepareStage() {
@@ -109,40 +108,68 @@ function prepareStage() {
     }
     document.getElementById("stage-info-desc").innerHTML = desc;
     
-    document.getElementById("game-screen").style.display = "flex";
     document.getElementById("stage-info-panel").classList.remove("hide-to-menu");
+}
+
+// ▼ セリフのタイプライター演出 ▼
+function typeDialogue() {
+    if (currentLineIndex >= dialogueLines.length) {
+        document.getElementById("start-fight-btn").style.display = "inline-block";
+        document.querySelector(".blinking-cursor").style.display = "none";
+        return;
+    }
+    
+    currentTextStr = dialogueLines[currentLineIndex];
+    document.getElementById("enemy-quote").innerText = "";
+    document.getElementById("start-fight-btn").style.display = "none";
+    document.querySelector(".blinking-cursor").style.display = "inline-block";
+    
+    isTyping = true;
+    let charIndex = 0;
+    
+    typeInterval = setInterval(() => {
+        document.getElementById("enemy-quote").innerText += currentTextStr[charIndex];
+        charIndex++;
+        if (charIndex >= currentTextStr.length) {
+            clearInterval(typeInterval);
+            isTyping = false;
+            currentLineIndex++;
+        }
+    }, 50); // 文字が出るスピード
 }
 
 function showEnemyDialogue() {
     const data = STAGE_DATA[currentStage - 1];
     document.getElementById("enemy-dialogue-image").src = data.bossImg;
-    document.getElementById("enemy-name").innerText = data.name;
-    document.getElementById("enemy-quote").innerText = data.quote;
-    
-    // ゲーム画面のボス画像も更新
     bossImage.src = data.bossImg;
+    bossImage.style.opacity = "0"; // 戦闘位置のボスは一旦隠す
     
+    document.getElementById("enemy-name").innerText = data.name;
     document.getElementById("enemy-dialogue").style.display = "flex";
+    
+    dialogueLines = data.quote;
+    currentLineIndex = 0;
+    document.getElementById("enemy-bubble-area").style.display = "block"; // 吹き出し表示
+    
+    typeDialogue();
 }
 
-document.getElementById("start-tutorial-btn").onclick = () => {
-    tutorialModal.classList.add("hide-to-menu");
-    currentStage = 1;
-    playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
-    availableMaterials = 0;
-    playerHP = playerStats.maxHp;
-    prepareStage();
+// セリフ画面のどこかをクリックした時
+document.getElementById("enemy-dialogue").onclick = (e) => {
+    if (e.target.id === "start-fight-btn") return; // ボタンを押した時は無視
+    
+    if (isTyping) {
+        // タイピング中なら一気に全部表示する
+        clearInterval(typeInterval);
+        document.getElementById("enemy-quote").innerText = currentTextStr;
+        isTyping = false;
+        currentLineIndex++;
+    } else {
+        // 次のセリフへ
+        typeDialogue();
+    }
 };
 
-document.getElementById("start-stage-btn").onclick = () => {
-    document.getElementById("stage-info-panel").classList.add("hide-to-menu");
-    showEnemyDialogue(); // 次へボタンを押したら、いきなり始まるのではなく敵が喋る！
-};
-
-document.getElementById("start-fight-btn").onclick = () => {
-    document.getElementById("enemy-dialogue").style.display = "none";
-    startStageSequence(); // BATTLE STARTボタンを押して初めて戦闘開始
-};
 
 window.onload = () => {
     let width = 0;
@@ -159,17 +186,82 @@ window.onload = () => {
 
 document.getElementById("agreeBtn").onclick = () => {
     document.getElementById("tos-screen").style.display = "none";
+    document.getElementById("char-select-screen").style.display = "flex"; // まずキャラ選択へ
+    initGame(); // 裏でカメラ起動開始
+};
+
+// ▼ キャラクター選択の処理 ▼
+function selectCharacter(playerId, imgSrc) {
+    selectedPlayerImage = imgSrc;
+    document.getElementById("ally-image").src = selectedPlayerImage; // ストーリーUIの画像をセット
+    
+    if (playerId === 1) {
+        playerStats = { maxHp: 1500, baseAtk: 15, critRate: 5, critDmg: 50 }; // 体力・攻撃力高め
+    } else {
+        playerStats = { maxHp: 800, baseAtk: 10, critRate: 25, critDmg: 80 }; // クリティカル特化
+    }
+    
+    playerHP = playerStats.maxHp;
+    
+    document.getElementById("char-select-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex";
-    initGame();
+    document.getElementById("tutorial-panel").classList.remove("hide-to-menu"); // 遊び方説明へ
+}
+
+document.getElementById("char1-btn").onclick = () => selectCharacter(1, "https://via.placeholder.com/200/ff0000/ffffff?text=PLAYER+A");
+document.getElementById("char2-btn").onclick = () => selectCharacter(2, "https://via.placeholder.com/200/0000ff/ffffff?text=PLAYER+B");
+
+document.getElementById("start-tutorial-btn").onclick = () => {
+    document.getElementById("tutorial-panel").classList.add("hide-to-menu");
+    currentStage = 1;
+    availableMaterials = 0;
+    prepareStage();
+};
+
+document.getElementById("start-stage-btn").onclick = () => {
+    document.getElementById("stage-info-panel").classList.add("hide-to-menu");
+    showEnemyDialogue(); 
+};
+
+// ▼ 敵が定位置に飛んでいくアニメーション ▼
+document.getElementById("start-fight-btn").onclick = (e) => {
+    e.stopPropagation(); // セリフクリック判定をストップ
+    
+    const enemyDialogImg = document.getElementById("enemy-dialogue-image");
+    const targetArea = document.getElementById("boss-image");
+    const bubble = document.getElementById("enemy-bubble-area");
+    
+    bubble.style.display = "none"; // 吹き出しを消す
+    
+    const startRect = enemyDialogImg.getBoundingClientRect();
+    const endRect = targetArea.getBoundingClientRect();
+    
+    // 中心点同士の距離を計算
+    const startX = startRect.left + startRect.width / 2;
+    const startY = startRect.top + startRect.height / 2;
+    const endX = endRect.left + endRect.width / 2;
+    const endY = endRect.top + endRect.height / 2;
+    
+    const moveX = endX - startX;
+    const moveY = endY - startY;
+    const scale = endRect.width / startRect.width;
+
+    const anim = enemyDialogImg.animate([
+        { transform: `translate(0px, 0px) scale(1)`, opacity: 1 },
+        { transform: `translate(${moveX}px, ${moveY}px) scale(${scale})`, opacity: 0.8 }
+    ], { duration: 600, easing: 'ease-in-out', fill: 'forwards' });
+
+    anim.onfinish = () => {
+        document.getElementById("enemy-dialogue").style.display = "none";
+        enemyDialogImg.style.transform = "none"; // 次のステージのためにリセット
+        targetArea.style.opacity = "1"; // 本物のボスを表示
+        startStageSequence();
+    };
 };
 
 document.getElementById("nextBtn").onclick = () => {
     document.getElementById("result-screen").style.display = "none";
-    
-    // ステージ数と同じだけ素材がもらえる！
-    let materialEarned = currentStage; 
-    availableMaterials += materialEarned;
-
+    availableMaterials += currentStage;
     currentStage++;
 
     if(currentStage === 2) {
@@ -186,11 +278,11 @@ document.getElementById("ally-text").onclick = () => {
 
 document.getElementById("retryBtn").onclick = () => {
     currentStage = 1;
-    playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
+    playerHP = playerStats.maxHp;
     availableMaterials = 0;
     document.getElementById("result-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex"; 
-    prepareStage(); // リトライ時も敵のセリフからスタート
+    prepareStage();
 };
 
 function openUpgradeScreen() {
@@ -206,9 +298,7 @@ function updateUpgradeUI() {
     document.getElementById("stat-cdmg-val").innerText = playerStats.critDmg + "%";
 
     const btns = document.querySelectorAll(".upgrade-btn");
-    btns.forEach(btn => {
-        btn.disabled = availableMaterials <= 0;
-    });
+    btns.forEach(btn => { btn.disabled = availableMaterials <= 0; });
 }
 
 document.querySelectorAll(".upgrade-btn").forEach(btn => {
@@ -217,21 +307,17 @@ document.querySelectorAll(".upgrade-btn").forEach(btn => {
         availableMaterials--;
         const stat = e.target.getAttribute("data-stat");
         
-        if(stat === "hp") {
-            playerStats.maxHp += 1000;
-        } else if(stat === "atk") {
-            playerStats.baseAtk += 20;
-        } else if(stat === "crate") {
-            playerStats.critRate += 20;
-        } else if(stat === "cdmg") {
-            playerStats.critDmg += 40;
-        }
+        if(stat === "hp") playerStats.maxHp += 1000;
+        else if(stat === "atk") playerStats.baseAtk += 20;
+        else if(stat === "crate") playerStats.critRate += 20;
+        else if(stat === "cdmg") playerStats.critDmg += 40;
         updateUpgradeUI();
     };
 });
 
 document.getElementById("finish-upgrade-btn").onclick = () => {
     document.getElementById("upgrade-screen").style.display = "none";
+    playerHP = playerStats.maxHp; // 強化後に体力全回復！
     prepareStage();
 };
 
@@ -305,9 +391,8 @@ function startStageSequence() {
     enemyHP = data.hp;
     currentEnemyAtk = data.atk;
     currentEnemyInterval = data.interval;
-    currentProjImg = data.projImg; // 敵の武器画像をセット
+    currentProjImg = data.projImg; 
     
-    playerHP = playerStats.maxHp;
     attackHistory = [];
     updateHP();
     
@@ -336,7 +421,7 @@ function startEnemyAttack() {
         if (!isGameActive || enemyHP <= 0 || playerHP <= 0) return;
         
         const proj = document.createElement("img");
-        proj.src = currentProjImg; // ステージごとの武器画像を投げる
+        proj.src = currentProjImg; 
         proj.className = "enemy-projectile";
         document.body.appendChild(proj);
 
@@ -425,8 +510,7 @@ shootBtn.onclick = async () => {
     if (headCount > 0) { 
         let calc = calcPartDamage(currentDamages.HEAD);
         totalDamage += calc.damage; if(calc.isCrit) anyCrit = true;
-        hitParts.push("HEAD" + (calc.isCrit ? "★" : "")); 
-        baseParts.push("HEAD"); 
+        hitParts.push("HEAD" + (calc.isCrit ? "★" : "")); baseParts.push("HEAD"); 
     }
 
     let bodyCount = 0;
@@ -434,8 +518,7 @@ shootBtn.onclick = async () => {
     if (bodyCount > 0) { 
         let calc = calcPartDamage(currentDamages.BODY);
         totalDamage += calc.damage; if(calc.isCrit) anyCrit = true;
-        hitParts.push("BODY" + (calc.isCrit ? "★" : "")); 
-        baseParts.push("BODY"); 
+        hitParts.push("BODY" + (calc.isCrit ? "★" : "")); baseParts.push("BODY"); 
     }
 
     let armCount = 0;
@@ -443,8 +526,7 @@ shootBtn.onclick = async () => {
     if (armCount > 0) { 
         let calc = calcPartDamage(currentDamages.ARMS);
         totalDamage += (calc.damage * armCount); if(calc.isCrit) anyCrit = true;
-        hitParts.push(`ARMS(x${armCount})` + (calc.isCrit ? "★" : "")); 
-        baseParts.push("ARMS"); 
+        hitParts.push(`ARMS(x${armCount})` + (calc.isCrit ? "★" : "")); baseParts.push("ARMS"); 
     }
 
     let waistCount = 0;
@@ -452,8 +534,7 @@ shootBtn.onclick = async () => {
     if (waistCount > 0) { 
         let calc = calcPartDamage(currentDamages.WAIST);
         totalDamage += (calc.damage * waistCount); if(calc.isCrit) anyCrit = true;
-        hitParts.push(`WAIST(x${waistCount})` + (calc.isCrit ? "★" : "")); 
-        baseParts.push("WAIST"); 
+        hitParts.push(`WAIST(x${waistCount})` + (calc.isCrit ? "★" : "")); baseParts.push("WAIST"); 
     }
 
     let kneeCount = 0;
@@ -461,8 +542,7 @@ shootBtn.onclick = async () => {
     if (kneeCount > 0) { 
         let calc = calcPartDamage(currentDamages.KNEE);
         totalDamage += (calc.damage * kneeCount); if(calc.isCrit) anyCrit = true;
-        hitParts.push(`KNEE(x${kneeCount})` + (calc.isCrit ? "★" : "")); 
-        baseParts.push("KNEE"); 
+        hitParts.push(`KNEE(x${kneeCount})` + (calc.isCrit ? "★" : "")); baseParts.push("KNEE"); 
     }
 
     let ankleCount = 0;
@@ -470,28 +550,23 @@ shootBtn.onclick = async () => {
     if (ankleCount > 0) { 
         let calc = calcPartDamage(currentDamages.ANKLE);
         totalDamage += (calc.damage * ankleCount); if(calc.isCrit) anyCrit = true;
-        hitParts.push(`ANKLE(x${ankleCount})` + (calc.isCrit ? "★" : "")); 
-        baseParts.push("ANKLE"); 
+        hitParts.push(`ANKLE(x${ankleCount})` + (calc.isCrit ? "★" : "")); baseParts.push("ANKLE"); 
     }
 
     if (totalDamage === 0) { 
         let calc = calcPartDamage(0); 
         totalDamage = calc.damage; if(calc.isCrit) anyCrit = true;
-        hitParts.push("GRAZE" + (calc.isCrit ? "★" : "")); 
-        baseParts.push("ARMS"); 
+        hitParts.push("GRAZE" + (calc.isCrit ? "★" : "")); baseParts.push("ARMS"); 
     } 
 
     let isBuffedAttack = false;
     if (buffAttacksLeft > 0) {
-        totalDamage *= 2;
-        buffAttacksLeft--;
-        isBuffedAttack = true;
+        totalDamage *= 2; buffAttacksLeft--; isBuffedAttack = true;
     }
 
     let buffTriggered = false;
     if (currentStage >= 3 && currentStage <= 6 && kneeCount > 0) {
-        buffAttacksLeft = 2; 
-        buffTriggered = true;
+        buffAttacksLeft = 2; buffTriggered = true;
     }
 
     let logText = hitParts.join(" + ");
