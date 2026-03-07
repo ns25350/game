@@ -86,7 +86,7 @@
         <div class="enemy-container">
             <div class="enemy-visual" id="boss-visual-area">
                 <img id="boss-image" src="" alt="BOSS">
-                <div class="enemy-glitch">TARGET: BOSS</div>
+                <div class="enemy-glitch" id="enemy-target-name">TARGET: BOSS</div>
             </div>
             <div class="hp-container">
                 <div id="hpBar" class="hp-bar-fill"></div>
@@ -112,15 +112,6 @@
     </div>
 </div>
 
-<div id="result-screen" class="screen" style="display: none;">
-    <div class="result-container">
-        <h2 id="result-title" class="neon-text-pink">MISSION COMPLETE</h2>
-        <div id="result-list" class="result-list"></div>
-        <button id="nextBtn" class="btn" style="display: none;">PROCEED TO UPGRADE</button>
-        <button id="retryBtn" class="btn" style="display: none;">RETRY (STAGE 1)</button>
-    </div>
-</div>
-
 <div id="ally-dialogue" class="ally-container" style="display: none;">
     <div class="speech-bubble" id="ally-text">
         よくやった！ここから敵がどんどん強くなる。<br>
@@ -138,6 +129,15 @@
         <span class="blinking-cursor">▼</span>
         <br>
         <button id="start-fight-btn" class="btn" style="display: none; margin-top: 10px;">BATTLE START</button>
+    </div>
+</div>
+
+<div id="result-screen" class="screen" style="display: none;">
+    <div class="result-container">
+        <h2 id="result-title" class="neon-text-pink">MISSION COMPLETE</h2>
+        <div id="result-list" class="result-list"></div>
+        <button id="nextBtn" class="btn" style="display: none;">PROCEED TO UPGRADE</button>
+        <button id="retryBtn" class="btn" style="display: none;">RETRY (STAGE 1)</button>
     </div>
 </div>
 
