@@ -40,7 +40,7 @@ let playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
 let availableMaterials = 0;
 let playerHP = 1000;
 let selectedPlayerImage = ""; // 選択した自キャラの画像
-
+let currentCharacterId = 1; // ★この1行をここに追加！
 let poseNet;
 let poses = [];
 let attackHistory = [];
@@ -278,8 +278,16 @@ document.getElementById("ally-text").onclick = () => {
 
 document.getElementById("retryBtn").onclick = () => {
     currentStage = 1;
-    playerHP = playerStats.maxHp;
     availableMaterials = 0;
+    
+    // ★追加：リトライ時に選んだキャラの初期ステータスへ完全リセット！
+    if (currentCharacterId === 1) {
+        playerStats = { maxHp: 1500, baseAtk: 15, critRate: 5, critDmg: 50 };
+    } else {
+        playerStats = { maxHp: 800, baseAtk: 10, critRate: 25, critDmg: 80 };
+    }
+    playerHP = playerStats.maxHp;
+
     document.getElementById("result-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex"; 
     prepareStage();
