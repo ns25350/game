@@ -242,3 +242,44 @@ body { background-color: var(--bg-dark); color: white; font-family: var(--font-m
     text-shadow: 0 0 10px var(--neon-red);
     font-size: 1.2rem;
 }
+/* --- キャラクター選択画面 --- */
+.char-select-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 30px;
+}
+.char-card {
+    border: 2px solid var(--neon-blue);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 250px;
+    text-align: center;
+}
+.char-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--neon-blue);
+    border-color: var(--neon-pink);
+}
+.char-card img {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+/* --- セリフUIの調整 --- */
+.enemy-dialogue-container {
+    cursor: pointer; /* クリックできることをアピール */
+}
+.blinking-cursor {
+    animation: blink 1s infinite;
+    color: var(--neon-red);
+    margin-left: 5px;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
