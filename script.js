@@ -14,17 +14,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// 画像URLの定義
+const BOSS_IMG_DEFAULT = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEieoNzaobsebcl38IfzsTJVw6rWsyjs3znCTUM1FvmEBOk-AEMbK7fpQNgIxKlAYs9975b504ugIaTUpusOaaBkZzujeTCjjmyeb4SavcUGNQdmLI-IgOAWIsAhmRCOJejPk7dOSFoOv7m_/s400/gomasuri_businessman.png";
+const HANKO_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgrcGrCSf_es99vaom5Jximsz0CFDKXsG01zyseZNkEKrkEV43pZub4mzLHV1dpyiiHhOrkU2GtfUVuhn3mUGV0-2SO0_pzcrMeyJie77ydVg2CehkszRM5WFkdrrYmNLdCyw1Ov9Bj4il2/s400/hanko_kakuin.png";
+const DOCTOR_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgNvpds-3q1I5Hb1-Mu-GCVzJTZYNnaw7BY5aiD0JTitFUk0g5DWKxPBpC7O6SYsqEW3MPtdWi4TJ5sTIQ_U8ZBXOf8F_G3TMxpviU7biVabcm6-5jxh7p0IzbCXso853ovCUQ11eWthnN7/s450/job_doctor_woman.png";
+
+// ▼ 新しいステージ＆敵データ ▼
 const STAGE_DATA = [
-    { hp: 1000, atk: 80, interval: 1000 },
-    { hp: 1500, atk: 100, interval: 900 },
-    { hp: 2500, atk: 120, interval: 800 },
-    { hp: 7000, atk: 200, interval: 500 },
-    { hp: 10000, atk: 300, interval: 500 },
-    { hp: 25000, atk: 1000, interval: 5000 },
-    { hp: 40000, atk: 80, interval: 50 },
-    { hp: 60000, atk: 600, interval: 250 },
-    { hp: 80000, atk: 800, interval: 200 },
-    { hp: 100000, atk: 1000, interval: 150 }
+    { hp: 1000, atk: 80, interval: 1000, name: "部長", quote: "おっお前か、今日も元気そうだなぁ。頑張れよ?", bossImg: BOSS_IMG_DEFAULT, projImg: HANKO_IMG },
+    { hp: 1500, atk: 120, interval: 1000, name: "若い男", quote: "言っとくけど、僕は部長より強いよ？フッwやろうか", bossImg: "https://via.placeholder.com/150/555555/ffffff?text=YOUNG+MAN", projImg: "https://via.placeholder.com/100/aaaaaa/000000?text=KNIFE" },
+    { hp: 2500, atk: 200, interval: 1000, name: "ケンタ", quote: "俺の尊敬するミニマリストが、お前はいらないって。", bossImg: "https://via.placeholder.com/150/0000ff/ffffff?text=KENTA", projImg: "https://via.placeholder.com/100/0000ff/ffffff?text=TABLET" },
+    { hp: 7000, atk: 800, interval: 1500, name: "ミツル", quote: "やめとくんだな。なんだって？お前らの事大好きやからいうとんねんぞ。", bossImg: "https://via.placeholder.com/150/ff8800/ffffff?text=MITSURU", projImg: HANKO_IMG },
+    { hp: 15000, atk: 100, interval: 500, name: "闇女", quote: "フフフ…切り刻んであげる…", bossImg: "https://via.placeholder.com/150/800080/ffffff?text=DARK+WOMAN", projImg: "https://via.placeholder.com/100/800080/ffffff?text=CLEAVER" },
+    { hp: 25000, atk: 100, interval: 1000, name: "味方だった女医", quote: "ごめんね、ここまで強いとは。でもここから先は神の領域よ。活かせるわけにはいかないのよ。", bossImg: DOCTOR_IMG, projImg: "https://via.placeholder.com/100/00ff00/000000?text=POISON" },
+    { hp: 40000, atk: 5000, interval: 1500, name: "インターネットの神様", quote: "フォッフォ", bossImg: "https://via.placeholder.com/150/00ffff/000000?text=WIFI+GOD", projImg: "https://via.placeholder.com/100/00ffff/000000?text=WIFI" },
+    { hp: 60000, atk: 1500, interval: 1000, name: "ゼウス", quote: ".....来たか..", bossImg: "https://via.placeholder.com/150/ffff00/000000?text=ZEUS", projImg: "https://via.placeholder.com/100/ffff00/000000?text=THUNDER" },
+    { hp: 80000, atk: 999999, interval: 15000, name: "寝不足な医者", quote: "あぁ...", bossImg: "https://via.placeholder.com/150/005500/ffffff?text=TIRED+DOCTOR", projImg: "https://via.placeholder.com/100/005500/ffffff?text=UNKNOWN" },
+    { hp: 100000, atk: 20000, interval: 1500, name: "開発者", quote: "君の今までのデータを見る限り膝が弱いね。オスグッドかなぁ？", bossImg: "https://via.placeholder.com/150/ffffff/000000?text=DEVELOPER", projImg: "https://via.placeholder.com/100/ffffff/000000?text=BIG+DATA" }
 ];
 
 const baseValues = [150, 80, 60, 30, 50, 120];
@@ -46,6 +52,7 @@ let currentMaxEnemyHP = 1000;
 let enemyHP = 1000;
 let currentEnemyAtk = 80;
 let currentEnemyInterval = 1000;
+let currentProjImg = HANKO_IMG;
 
 const THRESHOLD = 0.18;
 
@@ -66,10 +73,8 @@ const partImages = {
     "ANKLE": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRYoWa6FwxmvgM6ZZtPFXhX1L8t3547VkYjHoByFYw2Tm4qrpVCOer_RcsptOV7l9R3MWprbFunTwZM1rRGx9jWN70zWf5qwhJUvSkvn6rgLQ9fM3Gbv_Xf0qbBepoUn-rCLybkv6CQam/s400/body_foot_kakato.png"
 };
 
-const hankoImageSrc = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgrcGrCSf_es99vaom5Jximsz0CFDKXsG01zyseZNkEKrkEV43pZub4mzLHV1dpyiiHhOrkU2GtfUVuhn3mUGV0-2SO0_pzcrMeyJie77ydVg2CehkszRM5WFkdrrYmNLdCyw1Ov9Bj4il2/s400/hanko_kakuin.png";
-
 Object.values(partImages).forEach(src => { const img = new Image(); img.src = src; });
-const hankoImg = new Image(); hankoImg.src = hankoImageSrc;
+const hankoImg = new Image(); hankoImg.src = HANKO_IMG;
 
 const tutorialModal = document.getElementById("tutorial-panel");
 document.getElementById("close-tutorial").onclick = () => tutorialModal.classList.add("hide-to-menu");
@@ -108,21 +113,35 @@ function prepareStage() {
     document.getElementById("stage-info-panel").classList.remove("hide-to-menu");
 }
 
+function showEnemyDialogue() {
+    const data = STAGE_DATA[currentStage - 1];
+    document.getElementById("enemy-dialogue-image").src = data.bossImg;
+    document.getElementById("enemy-name").innerText = data.name;
+    document.getElementById("enemy-quote").innerText = data.quote;
+    
+    // ゲーム画面のボス画像も更新
+    bossImage.src = data.bossImg;
+    
+    document.getElementById("enemy-dialogue").style.display = "flex";
+}
+
 document.getElementById("start-tutorial-btn").onclick = () => {
     tutorialModal.classList.add("hide-to-menu");
     currentStage = 1;
     playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
     availableMaterials = 0;
     playerHP = playerStats.maxHp;
-    currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
-    buffAttacksLeft = 0;
-    document.getElementById("game-screen").style.display = "flex";
-    startStageSequence();
+    prepareStage();
 };
 
 document.getElementById("start-stage-btn").onclick = () => {
     document.getElementById("stage-info-panel").classList.add("hide-to-menu");
-    startStageSequence();
+    showEnemyDialogue(); // 次へボタンを押したら、いきなり始まるのではなく敵が喋る！
+};
+
+document.getElementById("start-fight-btn").onclick = () => {
+    document.getElementById("enemy-dialogue").style.display = "none";
+    startStageSequence(); // BATTLE STARTボタンを押して初めて戦闘開始
 };
 
 window.onload = () => {
@@ -147,7 +166,7 @@ document.getElementById("agreeBtn").onclick = () => {
 document.getElementById("nextBtn").onclick = () => {
     document.getElementById("result-screen").style.display = "none";
     
-    // ▼ ここを変更：クリアしたステージ数（currentStage）がそのままもらえる個数になります ▼
+    // ステージ数と同じだけ素材がもらえる！
     let materialEarned = currentStage; 
     availableMaterials += materialEarned;
 
@@ -165,16 +184,13 @@ document.getElementById("ally-text").onclick = () => {
     openUpgradeScreen();
 };
 
-// ▼ ここがバグ修正箇所：ゲーム画面の再表示を追加しました ▼
 document.getElementById("retryBtn").onclick = () => {
     currentStage = 1;
     playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
     availableMaterials = 0;
     document.getElementById("result-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex"; 
-    currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE": 50, "ANKLE": 120 };
-    buffAttacksLeft = 0;
-    startStageSequence(); 
+    prepareStage(); // リトライ時も敵のセリフからスタート
 };
 
 function openUpgradeScreen() {
@@ -289,6 +305,7 @@ function startStageSequence() {
     enemyHP = data.hp;
     currentEnemyAtk = data.atk;
     currentEnemyInterval = data.interval;
+    currentProjImg = data.projImg; // 敵の武器画像をセット
     
     playerHP = playerStats.maxHp;
     attackHistory = [];
@@ -319,7 +336,7 @@ function startEnemyAttack() {
         if (!isGameActive || enemyHP <= 0 || playerHP <= 0) return;
         
         const proj = document.createElement("img");
-        proj.src = hankoImageSrc;
+        proj.src = currentProjImg; // ステージごとの武器画像を投げる
         proj.className = "enemy-projectile";
         document.body.appendChild(proj);
 
