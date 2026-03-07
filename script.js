@@ -18,7 +18,6 @@ const BOSS_IMG_DEFAULT = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/A
 const HANKO_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgrcGrCSf_es99vaom5Jximsz0CFDKXsG01zyseZNkEKrkEV43pZub4mzLHV1dpyiiHhOrkU2GtfUVuhn3mUGV0-2SO0_pzcrMeyJie77ydVg2CehkszRM5WFkdrrYmNLdCyw1Ov9Bj4il2/s400/hanko_kakuin.png";
 const DOCTOR_IMG = "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgNvpds-3q1I5Hb1-Mu-GCVzJTZYNnaw7BY5aiD0JTitFUk0g5DWKxPBpC7O6SYsqEW3MPtdWi4TJ5sTIQ_U8ZBXOf8F_G3TMxpviU7biVabcm6-5jxh7p0IzbCXso853ovCUQ11eWthnN7/s450/job_doctor_woman.png";
 
-// ▼ 新しいステージデータ（設定反映済み！） ▼
 const STAGE_DATA = [
     { hp: 1000, atk: 80, interval: 1000, name: "部長", quote: ["おい、君。", "今日中にこの書類、", "全部ハンコ押しといて！"], bossImg: BOSS_IMG_DEFAULT, projImg: HANKO_IMG },
     { hp: 1500, atk: 120, interval: 1000, name: "若い男", quote: ["言っとくけど...", "僕は部長より強いよ？","まぁいい","やろうか.."], bossImg: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhE5wqxTpmTkoWAqwRv4njE_9uLS3h2_ozMeQyAtGnCaOfEiElVPH_lebH-eZIGJ_o459Ev6HKQUOCiAK6-liX2KXQ-vaTpUFZUai3KmrJkCWPw-IlMjb_hKM9YcEH68iVTDMAl3rOMUp5n/s450/kamen_warui_businessman.png", projImg: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh4KaLRO3uqI78DqWcvzLj_4sX02hn6vgXHSdcGcE6VpQElZrJsYlH67t0dASdfN8wqzQsglzodFr0IvBYfJ4_9w_fsVyzLjH6-MdYeiiIXqMBFn-1LJ1FTB8QpWbd0iAStVJ0-mxkw4Cs/s400/knife.png" },
@@ -209,6 +208,7 @@ document.getElementById("enemy-dialogue").onclick = (e) => {
     }
 };
 
+// ▼ 安定版の演出（フワッと消えてズームイン） ▼
 document.getElementById("start-fight-btn").onclick = (e) => {
     e.stopPropagation();
     
@@ -217,27 +217,22 @@ document.getElementById("start-fight-btn").onclick = (e) => {
     const bubble = document.getElementById("enemy-bubble-area");
     bubble.style.display = "none";
     
-    const startRect = enemyDialogImg.getBoundingClientRect();
-    const endRect = targetArea.getBoundingClientRect();
-    
-    const startX = startRect.left + startRect.width / 2;
-    const startY = startRect.top + startRect.height / 2;
-    const endX = endRect.left + endRect.width / 2;
-    const endY = endRect.top + endRect.height / 2;
-    
-    const moveX = endX - startX;
-    const moveY = endY - startY;
-    const scale = endRect.width / startRect.width;
-
     const anim = enemyDialogImg.animate([
-        { transform: `translate(0px, 0px) scale(1)`, opacity: 1 },
-        { transform: `translate(${moveX}px, ${moveY}px) scale(${scale})`, opacity: 0.8 }
-    ], { duration: 600, easing: 'ease-in-out', fill: 'forwards' });
+        { transform: `translateY(0px) scale(1)`, opacity: 1 },
+        { transform: `translateY(-50px) scale(1.2)`, opacity: 0 }
+    ], { duration: 500, easing: 'ease-in', fill: 'forwards' });
 
     anim.onfinish = () => {
         document.getElementById("enemy-dialogue").style.display = "none";
         enemyDialogImg.style.transform = "none";
+        enemyDialogImg.style.opacity = "1"; 
+        
         targetArea.style.opacity = "1"; 
+        targetArea.animate([
+            { transform: 'scale(0.5)', opacity: 0 },
+            { transform: 'scale(1)', opacity: 1 }
+        ], { duration: 500, easing: 'ease-out' });
+        
         startStageSequence();
     };
 };
@@ -599,4 +594,28 @@ function drawLoop() {
         });
     }
     requestAnimationFrame(drawLoop);
+}
+
+// ▼ プレイヤーの攻撃エフェクト関数 ▼
+function shootProjectile(imgSrc) {
+    if (!isGameActive) return;
+    const proj = document.createElement("img");
+    proj.src = imgSrc;
+    proj.className = "projectile";
+    document.body.appendChild(proj);
+
+    const playerArea = document.getElementById("player-area").getBoundingClientRect();
+    const bossRect = bossImage.getBoundingClientRect();
+
+    const startX = playerArea.left + playerArea.width / 2 - 25;
+    const startY = playerArea.top;
+    const targetX = bossRect.left + bossRect.width / 2 - 25;
+    const targetY = bossRect.top + bossRect.height / 2 - 25;
+
+    const animation = proj.animate([
+        { transform: `translate(${startX}px, ${startY}px) rotate(0deg) scale(0.5)` },
+        { transform: `translate(${targetX}px, ${targetY}px) rotate(720deg) scale(1.5)` }
+    ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+
+    animation.onfinish = () => proj.remove();
 }
