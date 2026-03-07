@@ -208,7 +208,6 @@ document.getElementById("enemy-dialogue").onclick = (e) => {
     }
 };
 
-// ▼ 安定版の演出（フワッと消えてズームイン） ▼
 document.getElementById("start-fight-btn").onclick = (e) => {
     e.stopPropagation();
     
@@ -277,6 +276,11 @@ function startEnemyAttack() {
         const proj = document.createElement("img");
         proj.src = currentProjImg; 
         proj.className = "enemy-projectile";
+        
+        // ★修正: 敵の攻撃画像の初期位置を固定
+        proj.style.left = "0px";
+        proj.style.top = "0px";
+        
         document.body.appendChild(proj);
 
         const bossRect = bossImage.getBoundingClientRect();
@@ -596,12 +600,16 @@ function drawLoop() {
     requestAnimationFrame(drawLoop);
 }
 
-// ▼ プレイヤーの攻撃エフェクト関数 ▼
 function shootProjectile(imgSrc) {
     if (!isGameActive) return;
     const proj = document.createElement("img");
     proj.src = imgSrc;
     proj.className = "projectile";
+    
+    // ★修正: プレイヤーの攻撃画像の初期位置を固定
+    proj.style.left = "0px";
+    proj.style.top = "0px";
+    
     document.body.appendChild(proj);
 
     const playerArea = document.getElementById("player-area").getBoundingClientRect();
