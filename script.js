@@ -317,6 +317,7 @@ document.querySelectorAll(".upgrade-btn").forEach(btn => {
 
 document.getElementById("finish-upgrade-btn").onclick = () => {
     document.getElementById("upgrade-screen").style.display = "none";
+    document.getElementById("game-screen").style.display = "flex"; // ← 【ここを追加！】ゲーム画面を再度表示する
     playerHP = playerStats.maxHp; // 強化後に体力全回復！
     prepareStage();
 };
