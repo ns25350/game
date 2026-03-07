@@ -199,15 +199,22 @@ body { background-color: var(--bg-dark); color: white; font-family: var(--font-m
     animation: floatUp 1s ease-out forwards;
     z-index: 50;
 }
-/* --- 敵キャラ登場UI（左下） --- */
+/* --- 敵キャラ登場・セリフUIの統合版 --- */
+
+/* 1. セリフ画面のコンテナ（絶対に横並びをキープ） */
 .enemy-dialogue-container {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    bottom: 5%;
+    left: 5%;
+    right: 5%; /* 左右に少し余白を持たせて画面に収める */
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row; /* ★強制的に横並び（左に画像、右に吹き出し） */
+    flex-wrap: nowrap;   /* ★絶対に改行（縦並び）させない！ */
     align-items: flex-end;
+    justify-content: flex-start;
     z-index: 1000;
+    max-height: 40vh;
+    cursor: pointer;
     animation: slideInLeft 0.5s ease-out forwards;
 }
 
@@ -216,32 +223,84 @@ body { background-color: var(--bg-dark); color: white; font-family: var(--font-m
     to { transform: translateX(0); opacity: 1; }
 }
 
-.enemy-dialogue-container img {
+/* 2. 敵の画像（スマホでもPCでも潰れず、はみ出さない） */
+#enemy-dialogue-image {
     width: 150px;
+    max-width: 30vw; /* ★画面が狭いときは自動で縮小 */
     height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    flex-shrink: 0; /* 吹き出しに押されて画像が潰れるのを防ぐ */
     filter: drop-shadow(0 0 10px var(--neon-red));
+    margin-bottom: 0;
 }
 
+/* 3. 吹き出し（文字が増えてもスクロールで対応） */
 .enemy-bubble {
-    border-color: var(--neon-red);
+    flex-grow: 1;
+    max-width: 60vw; /* ★吹き出しが広がりすぎて画面をはみ出すのを防ぐ */
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 20, 40, 0.9);
+    border: 2px solid var(--neon-red);
     box-shadow: 0 0 15px var(--neon-red);
+    border-radius: 10px;
+    padding: 15px;
     margin-left: 15px;
-    margin-right: 15px;
+    color: #fff;
     text-align: left;
+    position: relative;
 }
 
+/* 吹き出しの尻尾（左側に向ける） */
 .enemy-bubble::after {
+    content: '';
+    position: absolute;
     right: auto;
-    left: -10px;
-    border-width: 10px 10px 10px 0;
+    left: -12px;
+    bottom: 20px;
+    border-width: 10px 15px 10px 0;
+    border-style: solid;
     border-color: transparent var(--neon-red) transparent transparent;
 }
 
+/* セリフ用の赤文字・カーソル点滅 */
 .neon-text-red {
     color: var(--neon-red);
     text-shadow: 0 0 10px var(--neon-red);
     font-size: 1.2rem;
 }
+
+.blinking-cursor {
+    animation: blink 1s infinite;
+    color: var(--neon-red);
+    margin-left: 5px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+
+/* --- メイン画面のボス画像 --- */
+#boss-visual-area {
+    height: 250px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+#boss-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+
 /* --- キャラクター選択画面 --- */
 .char-select-container {
     display: flex;
@@ -268,59 +327,4 @@ body { background-color: var(--bg-dark); color: white; font-family: var(--font-m
     height: 150px;
     object-fit: contain;
     margin-bottom: 10px;
-}
-
-/* --- セリフUIの調整 --- */
-.enemy-dialogue-container {
-    cursor: pointer; /* クリックできることをアピール */
-}
-.blinking-cursor {
-    animation: blink 1s infinite;
-    color: var(--neon-red);
-    margin-left: 5px;
-}
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
-}
-/* --- 敵のサイズ統一・UI崩れ防止 --- */
-
-/* 1. セリフ画面の敵画像を固定サイズに */
-#enemy-dialogue-image {
-    width: 200px !important;       /* 横幅を固定 */
-    height: 200px !important;      /* 縦幅を固定 */
-    object-fit: contain !important; /* はみ出さずに枠内に収める神プロパティ */
-    flex-shrink: 0;                /* 画像が潰れるのを防ぐ */
-}
-
-/* 2. セリフ画面のコンテナが画面外に行かないように制御 */
-.enemy-dialogue-container {
-    position: fixed !important;
-    bottom: 5% !important;
-    left: 5% !important;
-    right: 5% !important;
-    align-items: flex-end !important;
-    z-index: 100;
-    max-height: 40vh; /* 画面の下40%以内に必ず収める */
-}
-
-/* 3. メイン画面のボス画像も高さを制限 */
-#boss-visual-area {
-    height: 250px !important; /* ボスエリアの高さを固定 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-#boss-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain !important;
-}
-
-/* 4. セリフの吹き出しが大きくなりすぎないように調整 */
-.enemy-bubble {
-    max-height: 200px;
-    overflow-y: auto; /* 万が一文字が多くなっても内側でスクロールさせる */
-    flex-grow: 1;
 }
