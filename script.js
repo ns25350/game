@@ -36,6 +36,7 @@ let currentDamages = { "HEAD": 150, "BODY": 80, "WAIST": 60, "ARMS": 30, "KNEE":
 let buffAttacksLeft = 0; 
 
 let playerStats = { maxHp: 1000, baseAtk: 10, critRate: 5, critDmg: 50 };
+let basePlayerStats = null; // ←追加
 let availableMaterials = 0;
 let playerHP = 1000;
 let selectedPlayerImage = "";
@@ -111,11 +112,15 @@ document.getElementById("agreeBtn").onclick = () => {
 function selectCharacter(playerId, imgSrc) {
     selectedPlayerImage = imgSrc;
     document.getElementById("ally-image").src = selectedPlayerImage;
+
     if (playerId === 1) {
-        playerStats = { maxHp: 1500, baseAtk: 15, critRate: 5, critDmg: 50 };
+        basePlayerStats = { maxHp: 1500, baseAtk: 15, critRate: 5, critDmg: 50 };
     } else {
-        playerStats = { maxHp: 800, baseAtk: 10, critRate: 25, critDmg: 80 };
+        basePlayerStats = { maxHp: 800, baseAtk: 10, critRate: 25, critDmg: 80 };
     }
+
+    playerStats = { ...basePlayerStats };
+
     playerHP = playerStats.maxHp;
     document.getElementById("char-select-screen").style.display = "none";
     document.getElementById("game-screen").style.display = "flex";
@@ -515,11 +520,26 @@ document.getElementById("ally-text").onclick = () => {
 };
 
 document.getElementById("retryBtn").onclick = () => {
+
+    // 戦闘停止
+    isGameActive = false;
+    if (enemyAttackInterval) clearInterval(enemyAttackInterval);
+    if (typeInterval) clearInterval(typeInterval);
+
+    // ステージリセット
     currentStage = 1;
-    playerHP = playerStats.maxHp;
     availableMaterials = 0;
+    attackHistory = [];
+    buffAttacksLeft = 0;
+
+    // ステータス初期化
+    playerStats = { ...basePlayerStats };
+
+    playerHP = playerStats.maxHp;
+
     document.getElementById("result-screen").style.display = "none";
-    document.getElementById("game-screen").style.display = "flex"; 
+    document.getElementById("game-screen").style.display = "flex";
+
     prepareStage();
 };
 
