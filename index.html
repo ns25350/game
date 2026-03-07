@@ -53,7 +53,7 @@
                 <h3>- CURRENT DAMAGE DATA -</h3>
                 <ul id="stage-info-list"></ul>
             </div>
-            <button id="start-stage-btn" class="btn" style="margin-top:15px;">START BATTLE</button>
+            <button id="start-stage-btn" class="btn" style="margin-top:15px;">NEXT</button>
         </div>
     </div>
 
@@ -66,7 +66,7 @@
     <div class="game-area">
         <div class="enemy-container">
             <div class="enemy-visual">
-                <img id="boss-image" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEieoNzaobsebcl38IfzsTJVw6rWsyjs3znCTUM1FvmEBOk-AEMbK7fpQNgIxKlAYs9975b504ugIaTUpusOaaBkZzujeTCjjmyeb4SavcUGNQdmLI-IgOAWIsAhmRCOJejPk7dOSFoOv7m_/s400/gomasuri_businessman.png" alt="BOSS">
+                <img id="boss-image" src="" alt="BOSS">
                 <div class="enemy-glitch">TARGET: BOSS</div>
             </div>
             <div class="hp-container">
@@ -109,6 +109,15 @@
         (クリックで次へ)
     </div>
     <img id="ally-image" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgNvpds-3q1I5Hb1-Mu-GCVzJTZYNnaw7BY5aiD0JTitFUk0g5DWKxPBpC7O6SYsqEW3MPtdWi4TJ5sTIQ_U8ZBXOf8F_G3TMxpviU7biVabcm6-5jxh7p0IzbCXso853ovCUQ11eWthnN7/s450/job_doctor_woman.png" alt="Ally">
+</div>
+
+<div id="enemy-dialogue" class="enemy-dialogue-container" style="display: none;">
+    <img id="enemy-dialogue-image" src="" alt="Enemy">
+    <div class="speech-bubble enemy-bubble">
+        <strong id="enemy-name" class="neon-text-red"></strong><br>
+        <span id="enemy-quote"></span><br>
+        <button id="start-fight-btn" class="btn" style="margin-top: 10px;">BATTLE START</button>
+    </div>
 </div>
 
 <div id="upgrade-screen" class="screen" style="display: none;">
