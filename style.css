@@ -156,53 +156,55 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transfo
 .hide-to-menu { transform: translateY(-100%); pointer-events: none; }
 .close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
 
-.score-table ul { list-style: none; padding: 0; text-align: left; }
-.score-table li { background: rgba(255,255,255,0.1); margin: 5px 0; padding: 10px; border-left: 3px solid var(--neon-blue); }
-
-.upgrade-list { text-align: left; margin-top: 15px; }
-.upgrade-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 10px; border: 1px solid #444; }
-.stat-info { display: flex; flex-direction: column; }
-.stat-name { font-size: 0.8rem; color: #aaa; }
-.stat-val { font-size: 1.2rem; font-weight: bold; }
-.stat-up { color: #0f0; font-size: 0.9rem; }
-.upgrade-btn { padding: 5px 15px; font-size: 0.9rem; margin: 0; }
-
-.ally-container { position: fixed; bottom: 5%; left: 5%; display: flex; align-items: flex-end; z-index: 100; }
-.ally-container img { width: 150px; height: 150px; border-radius: 50%; border: 2px solid var(--neon-blue); margin-left: 15px; }
-.speech-bubble { background: rgba(0, 20, 40, 0.9); border: 2px solid var(--neon-blue); border-radius: 10px; padding: 15px; position: relative; max-width: 300px; color: #fff; cursor: pointer; }
-.speech-bubble::after { content: ''; position: absolute; right: -15px; bottom: 20px; border-width: 10px 0 10px 15px; border-style: solid; border-color: transparent transparent transparent var(--neon-blue); }
-
-/* ▼ 敵のセリフ画面のレイアウト崩れ対策（ここが重要） ▼ */
+/* ▼ 画像が上に逃げない完全固定レイアウト ▼ */
 .enemy-dialogue-container {
     position: fixed;
     bottom: 5%;
-    left: 5%;
-    right: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 700px;
     display: flex;
-    flex-direction: row;
-    align-items: flex-end;
-    gap: 20px; /* 画像と吹き出しの隙間 */
+    flex-wrap: nowrap; /* ★絶対に折り返さない */
+    align-items: flex-end; /* 必ず下揃え */
+    justify-content: center;
+    gap: 20px;
     z-index: 100;
-    max-height: 40vh;
 }
+
 #enemy-dialogue-image {
-    width: 200px;
-    height: 200px;
-    object-fit: contain;
-    flex-shrink: 0; /* 画像が潰れるのを防ぐ */
-}
-.enemy-bubble {
+    width: 150px;
+    height: auto;
     max-height: 200px;
+    object-fit: contain;
+    flex-shrink: 0; /* ★吹き出しに潰されない */
+    margin-bottom: 0;
+}
+
+.enemy-bubble {
+    flex-grow: 1; /* 空いたスペースを使う */
+    max-width: 450px;
+    max-height: 150px;
     overflow-y: auto;
-    flex-grow: 1;
+    background: rgba(0, 20, 40, 0.9);
+    border: 2px solid var(--neon-red);
+    border-radius: 10px;
+    padding: 15px;
+    position: relative;
+    color: #fff;
+    margin-bottom: 0;
 }
 .enemy-bubble::after {
-    right: auto; left: -15px; border-width: 10px 15px 10px 0; border-color: transparent var(--neon-red) transparent transparent;
+    content: ''; 
+    position: absolute;
+    right: auto; 
+    left: -15px; 
+    bottom: 20px;
+    border-width: 10px 15px 10px 0; 
+    border-style: solid;
+    border-color: transparent var(--neon-red) transparent transparent;
 }
 .blinking-cursor { animation: blink 1s infinite; }
-
-.result-list { max-height: 250px; overflow-y: auto; text-align: left; margin: 20px 0; padding: 10px; background: rgba(0,0,0,0.5); }
-.result-item { border-bottom: 1px solid #333; padding: 5px 0; font-size: 0.9rem; display: flex; justify-content: space-between; }
 
 .dmg-popup, .crit-popup, .player-dmg-popup {
     position: absolute; font-weight: bold; pointer-events: none; animation: floatUp 0.8s forwards; z-index: 200;
@@ -211,7 +213,17 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transfo
 .crit-popup { color: #ffeb3b; text-shadow: 0 0 10px #ff9800; font-size: 2rem; transform: scale(1.2); }
 .player-dmg-popup { color: #f00; text-shadow: 0 0 10px #000; font-size: 2rem; }
 
-.projectile, .enemy-projectile { position: absolute; width: 50px; height: 50px; object-fit: contain; z-index: 150; pointer-events: none; }
+/* ▼ 攻撃のスタート位置を左上に完全固定 ▼ */
+.projectile, .enemy-projectile { 
+    position: absolute; 
+    left: 0; /* ★ここがゼロじゃないと宇宙の彼方から飛んでくる */
+    top: 0;  /* ★ここがゼロじゃないと宇宙の彼方から飛んでくる */
+    width: 50px; 
+    height: 50px; 
+    object-fit: contain; 
+    z-index: 999;
+    pointer-events: none; 
+}
 
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(1.5); } }
