@@ -283,3 +283,45 @@ body { background-color: var(--bg-dark); color: white; font-family: var(--font-m
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
 }
+/* --- 敵のサイズ統一・UI崩れ防止 --- */
+
+/* 1. セリフ画面の敵画像を固定サイズに */
+#enemy-dialogue-image {
+    width: 200px !important;       /* 横幅を固定 */
+    height: 200px !important;      /* 縦幅を固定 */
+    object-fit: contain !important; /* はみ出さずに枠内に収める神プロパティ */
+    flex-shrink: 0;                /* 画像が潰れるのを防ぐ */
+}
+
+/* 2. セリフ画面のコンテナが画面外に行かないように制御 */
+.enemy-dialogue-container {
+    position: fixed !important;
+    bottom: 5% !important;
+    left: 5% !important;
+    right: 5% !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    z-index: 100;
+    max-height: 40vh; /* 画面の下40%以内に必ず収める */
+}
+
+/* 3. メイン画面のボス画像も高さを制限 */
+#boss-visual-area {
+    height: 250px !important; /* ボスエリアの高さを固定 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#boss-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain !important;
+}
+
+/* 4. セリフの吹き出しが大きくなりすぎないように調整 */
+.enemy-bubble {
+    max-height: 200px;
+    overflow-y: auto; /* 万が一文字が多くなっても内側でスクロールさせる */
+    flex-grow: 1;
+}
