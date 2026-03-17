@@ -54,6 +54,36 @@
         <span></span><span></span><span></span>
     </div>
 
+    <div id="pause-menu" class="screen" style="display: none; background: rgba(0,0,0,0.85); z-index: 2000;">
+        <div class="modal-content">
+            <h2 class="neon-text-blue">PAUSE</h2>
+            <button id="resume-btn" class="btn" style="display: block; width: 80%; margin: 10px auto;">GAME RESUME</button>
+            <button id="check-rules-btn" class="btn" style="display: block; width: 80%; margin: 10px auto;">RULES & UPGRADES</button>
+            <button id="restart-btn" class="btn" style="display: block; width: 80%; margin: 10px auto; border-color: var(--neon-red); color: var(--neon-red);">RETRY (STAGE 1)</button>
+        </div>
+    </div>
+
+    <div id="rules-panel" class="tutorial-modal hide-to-menu" style="z-index: 2001;">
+        <div class="tutorial-content" style="max-height: 80vh; overflow-y: auto; text-align: left;">
+            <button id="close-rules-btn" class="close-btn">&times;</button>
+            <h2 class="neon-text-blue" style="text-align: center;">RULES & SYSTEM</h2>
+            
+            <h3 class="neon-text-pink">▶ CURRENT DAMAGE TABLE</h3>
+            <ul id="rules-damage-list" style="margin-bottom: 20px;"></ul>
+            
+            <h3 class="neon-text-pink">▶ UPGRADE SYSTEM</h3>
+            <p style="font-size: 0.9rem; color: #ccc;">クリア報酬の素材でステータスを強化！<br>
+            <span style="color: yellow; font-weight: bold;">★ 10%の確率で強化大成功！伸び幅が倍増！</span></p>
+            <ul style="font-size: 0.9rem; line-height: 1.6;">
+                <li><strong class="neon-text-blue">MAX HP:</strong> 体力上限アップ (+1000)</li>
+                <li><strong class="neon-text-blue">BASE ATK:</strong> 基礎攻撃力アップ (+20)</li>
+                <li><strong class="neon-text-blue">CRIT RATE:</strong> 会心確率アップ (+10%)</li>
+                <li><strong class="neon-text-blue">CRIT DMG:</strong> 会心時の威力アップ (+60%)</li>
+                <li><strong class="neon-text-blue">UPG MULT:</strong> ★強化大成功時の倍率をさらにアップ！ (+x1)</li>
+            </ul>
+        </div>
+    </div>
+
     <div id="tutorial-panel" class="tutorial-modal hide-to-menu">
         <div class="tutorial-content">
             <button id="close-tutorial" class="close-btn">&times;</button>
@@ -149,8 +179,9 @@
         <div class="upgrade-list">
             <div class="upgrade-item"><div class="stat-info"><span class="stat-name">MAX HP</span><span class="stat-val" id="stat-hp-val">1000</span> <span class="stat-up">▶ +1000</span></div><button class="btn upgrade-btn" data-stat="hp">UPGRADE</button></div>
             <div class="upgrade-item"><div class="stat-info"><span class="stat-name">BASE ATK</span><span class="stat-val" id="stat-atk-val">10</span> <span class="stat-up">▶ +20</span></div><button class="btn upgrade-btn" data-stat="atk">UPGRADE</button></div>
-            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">CRIT RATE</span><span class="stat-val" id="stat-crate-val">5%</span> <span class="stat-up">▶ +20%</span></div><button class="btn upgrade-btn" data-stat="crate">UPGRADE</button></div>
-            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">CRIT DMG</span><span class="stat-val" id="stat-cdmg-val">50%</span> <span class="stat-up">▶ +40%</span></div><button class="btn upgrade-btn" data-stat="cdmg">UPGRADE</button></div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">CRIT RATE</span><span class="stat-val" id="stat-crate-val">5%</span> <span class="stat-up">▶ +10%</span></div><button class="btn upgrade-btn" data-stat="crate">UPGRADE</button></div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">CRIT DMG</span><span class="stat-val" id="stat-cdmg-val">50%</span> <span class="stat-up">▶ +60%</span></div><button class="btn upgrade-btn" data-stat="cdmg">UPGRADE</button></div>
+            <div class="upgrade-item"><div class="stat-info"><span class="stat-name">UPG MULT (強化大成功倍率)</span><span class="stat-val" id="stat-upg-mult-val">x2</span> <span class="stat-up">▶ +x1</span></div><button class="btn upgrade-btn" data-stat="upg_mult">UPGRADE</button></div>
         </div>
         <button id="finish-upgrade-btn" class="btn" style="margin-top: 20px;">NEXT BATTLE</button>
     </div>
