@@ -288,6 +288,9 @@ document.getElementById("start-fight-btn").onclick = (e) => {
     ], { duration: 500, easing: 'ease-in', fill: 'forwards' });
 
     anim.onfinish = () => {
+        // ▼ ★ここが超重要！アニメーションの透明状態を解除する！ ▼
+        anim.cancel(); 
+        
         document.getElementById("enemy-dialogue").style.display = "none";
         enemyDialogImg.style.transform = "none";
         enemyDialogImg.style.opacity = "1"; 
